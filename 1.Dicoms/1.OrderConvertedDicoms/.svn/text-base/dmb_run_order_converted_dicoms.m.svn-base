@@ -1,0 +1,157 @@
+function out = dmb_run_order_converted_dicoms (job)
+
+%% Check inputs
+
+%% Define variables
+range_echo_nr       = [1 2];
+range_scan_nr       = [4 5];
+range_type          = 1;
+range_session_nr    = [12 13];
+curr_func_prefix    = 'f';
+curr_struc_prefix   = 's';
+
+%% Read in inputs
+if (strcmp(job.files{1}([end-1 end]), ',1'))
+    files_cell      = cellfun(@(x)x(1:(end-2)), job.files, 'UniformOutput', false);
+else
+    files_cell      = job.files;
+end
+if (size(files_cell, 2) > size(files_cell, 1))
+    files_cell = files_cell';
+end
+
+base_filename   = job.subject;
+func_dir        = job.dir_branch.func_dir;
+struc_dir       = job.dir_branch.struc_dir;
+echo_dir        = job.dir_branch.echo_dir;
+sess_dir        = job.dir_branch.sess_dir;
+type_dir        = job.dir_branch.type_dir;
+move            = job.move;
+expected_n_sessions = job.expected_n_sessions;
+
+%% Locs file separator
+locs_file_separators = cellfun(@regexp, files_cell, repmat({filesep}, size(files_cell)), 'UniformOutput', false);
+last_separator       = cellfun(@max, locs_file_separators);
+filenames            = cellfun(@(x)x((last_separator+1):end), files_cell, 'UniformOutput', false);
+filenames            = cellfun(@(x)x(x ~= ' '), filenames, 'UniformOutput', false);
+dirs                 = cellfun(@(x)x(1:(last_separator-1)), files_cell, 'UniformOutput', false);
+
+%% Extract relevant parts of filenames
+locs_underscores_minuses    = cellfun(@regexp, filenames, repmat({'_|-'}, size(filenames)), 'UniformOutput', false);
+lengths                     = cellfun(@length, locs_underscores_minuses);
+
+% Make sure filename structure is the same for each file!
+assert (length(unique(lengths)) == 1);
+
+% Then convert it to a matrix
+locs_underscores_minuses    = cell2mat (locs_underscores_minuses);
+
+%% Determine the properties of the files
+types                       = cellfun(@(x)x(:, range_type), filenames);
+if size(locs_underscores_minuses, 1) ~= size(filenames, 1) || size(filenames, 1) == 1
+    '!!';
+end
+echo_nrs                    = cellfun(@(x, a, b)x(a:b), filenames, num2cell(locs_underscores_minuses(:, range_echo_nr(1))+1), num2cell(locs_underscores_minuses(:, range_echo_nr(2))-1), 'UniformOutput', false);
+session_nrs                 = cellfun(@(x, a, b)x(a:b), filenames, num2cell(locs_underscores_minuses(:, range_session_nr(1))+1), num2cell(locs_underscores_minuses(:, range_session_nr(2))-1), 'UniformOutput', false);
+scan_nrs                    = cellfun(@(x, a, b)x(a:b), filenames, num2cell(locs_underscores_minuses(:, range_scan_nr(1))+1), num2cell(locs_underscores_minuses(:, range_scan_nr(2))-1), 'UniformOutput', false);
+u                           = repmat({'_'}, size(scan_nrs));
+b                           = repmat({base_filename}, size(scan_nrs));
+
+% Interpret session_nrs
+[uniq_vals a sess_nrs]             = unique(session_nrs);
+session_nrs                 = num2cell(sess_nrs);
+session_nrs                 = cellfun(@num2str, session_nrs, 'UniformOutput', false);
+
+% Interpret session_nrs
+[uniq_vals a echo_nrs_int]             = unique(echo_nrs);
+
+% Interpret scan_nrs
+max_length = max(cellfun(@length, scan_nrs));
+scan_nrs = cellfun(@(x, max_length) [repmat('0', 1, max_length-length(x)), x], scan_nrs, repmat({max_length}, length(scan_nrs), 1), 'UniformOutput', false);
+
+%% Also determine the target directories
+seps                        = repmat({filesep}, size(scan_nrs));
+
+base_dir(types == curr_func_prefix, 1) = repmat({func_dir}, sum(types == curr_func_prefix), 1);
+base_dir(types == curr_struc_prefix, 1) = repmat({struc_dir}, sum(types == curr_struc_prefix), 1);
+
+func_sess_bools = types == curr_func_prefix;
+struc_sess_bools = types == curr_struc_prefix;
+
+func_sess_nrs = session_nrs(func_sess_bools);
+struc_type_nrs = session_nrs(struc_sess_bools);
+
+if ~isempty(func_sess_nrs)
+    [func_vals a sess_nrs] = unique(func_sess_nrs);
+    sess_dirs(func_sess_bools, 1) = strcat(repmat({sess_dir}, sum(func_sess_bools), 1), mat2cell(num2str(sess_nrs), ones(length(sess_nrs), 1), 1));
+else
+    disp('No functional scans included');
+end
+
+if ~isempty(struc_type_nrs)
+    [struc_vals a type_nrs] = unique(struc_type_nrs);
+    sess_dirs(struc_sess_bools, 1) = strcat(repmat({type_dir}, sum(struc_sess_bools), 1), mat2cell(num2str(type_nrs), ones(length(type_nrs), 1), 1));
+end
+
+echo_dirs = strcat(repmat({echo_dir}, size(scan_nrs)), echo_nrs);
+directories = strcat(dirs, seps, base_dir, seps, sess_dirs, seps, echo_dirs);
+
+%% And convert it to filenames
+new_filenames               = strcat(types, u, b, u, sess_dirs, u, echo_dirs, u, scan_nrs);
+
+old_filenames = strcat(dirs, seps, filenames);
+new_filenames = strcat(directories, seps, new_filenames, '.nii');
+
+%% Create dirs
+unique_dirs = unique(directories);
+warning off;
+cellfun(@mkdir, unique_dirs);
+warning on;
+
+%% Copy actual files
+if move
+    fprintf('Started to MOVE files ...');
+else
+    fprintf('Started to copy files ...');
+end
+
+tic
+if move
+    for nr_file = 1: length(old_filenames)
+        eval(['!mv ' old_filenames{nr_file} ' ' new_filenames{nr_file}]);
+    end
+else
+    for nr_file = 1: length(old_filenames)
+        eval(['!cp ' old_filenames{nr_file} ' ' new_filenames{nr_file}]);
+    end
+end    
+fprintf('... Ready\n\n');
+toc
+
+out = {};
+if ~isempty(func_sess_nrs)
+    tmp_new_filenames = new_filenames(func_sess_bools);
+    echo_nrs_int = echo_nrs_int(func_sess_bools);
+    nechoes = length(unique(echo_nrs));
+    for nr_sess = 1: length(func_vals)
+        for nr_echo = 1: nechoes
+            nr = (nr_sess - 1) * nechoes + nr_echo;
+            out(nr).files = sort(tmp_new_filenames(sess_nrs == nr_sess & echo_nrs_int == nr_echo));
+            out(nr).subject = job.subject;
+%             out(nr).name    = ['Func sess ' num2str(nr_sess) ' echo ' num2str(nr_echo)];
+        end
+    end
+end
+
+% if ~isempty(struc_type_nrs)
+%     tmp_new_filenames = new_filenames(struc_sess_bools);
+%     base_nr_sess = length(out);
+%     for nr_sess = 1: length(struc_vals)
+%         for nr_echo = 1: length(unique(echo_nrs))
+%             nr = base_nr_sess + (nr_sess - 1) * nechoes + nr_echo;
+%             out(nr).files = sort(tmp_new_filenames(type_nrs == nr_sess));
+%             out(base_nr_sess+1).subject = {job.subject};
+% %             out(nr).name    = ['Struc sess ' num2str(nr_sess) ' echo ' num2str(nr_echo)];
+%         end
+%     end
+% end
