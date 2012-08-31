@@ -20,23 +20,11 @@ function out = dmb_run_check_spikes(job)
 % Pieter and Inge adapted this for ME
 %--------------------------------------------------------------------------
 multiecho   = job.multiecho;
-output_dir  = determine_path(job.files{1});
-nr          = regexp(output_dir{1}, '/S\d+/');
-output_dir  = output_dir{1}(1:(min(nr)+3));
+output_dirs  = job.output_dir;
 subject     = job.subject;
 cfg.mode    = job.mode;
 flags.mode  = cfg.mode;
 
-func_dir        = job.dir_branch.func_dir;
-struc_dir       = job.dir_branch.struc_dir;
-echo_dir        = job.dir_branch.echo_dir;
-sess_dir        = job.dir_branch.sess_dir;
-type_dir        = job.dir_branch.type_dir;
-
-spike_dir       = fullfile('fMRI', 'info', 'spike');
-if ~exist(fullfile(output_dir, spike_dir), 'dir')
-    mkdir(fullfile(output_dir, spike_dir));
-end
 % if (strcmp(job.files{1}{1}([end-1 end]), ',1'))
 %     sessions      = cellfun(@(x)x(1:(end-2)), job.files, 'UniformOutput', false);
 % else
@@ -54,10 +42,6 @@ spm_defaults;
 
 %% Sort input and settings
 %----------------------------------------------------
-
-dirs.root       = fullfile(filesep,'home','action','lenver','Data','Exp1'); % root directory containing the subject directories and group directory
-dirs.orig       = 'orig';                           % directory with the original images, these stay untouched and are copied to the working directory before the preprocessing
-dirs.spike      = fullfile('info','spike_check');   % subdirectory under the session directory containing the spiked image(s) and summary figures
 
 cfg.spike_threshold   = 0.3;                        % fractional deviation of slice mean that qualifies as a 'spike' 0.1 = 10%
 cfg.prefix_spike      = '';                         % if you want a prefix for your new images, please say so. Beware however, this might intervene with your original functional prefix!
@@ -94,10 +78,9 @@ flags.maskint.mode      = ('outside_brain');    % if mask_type 'intensity':'insi
 flags.base_cor_on       = ('previous_vol'); 	% base the correction on deviation from 'previous_vol' or 'timecourse_avg')
 flags.spike_threshold   = INFO.check.spike.threshold;	% fractional deviation of slice mean that qualifies as a 'spike' 0.1 = 10%
 flags.file_prefix_addon = INFO.check.spike.prefix;      % if you want a prefix for your new images, please say so. Beware however, this might intervene with your original functional prefix!
-flags.spike_dir         = fullfile(output_dir, spike_dir);
 
-if ~exist(flags.spike_dir, 'dir')
-    mkdir(flags.spike_dir);
+if length(output_dirs) == 1 && length(sessions) > 1
+    output_dirs = repmat(output_dirs, size(sessions));
 end
 
 disp (['I''m being called in run mode: '  flags.mode  ] );
@@ -105,11 +88,12 @@ disp (['I''m being called in run mode: '  flags.mode  ] );
 spm('CreateIntWin');
 for sess = 1: nosessions
     files = sessions{sess};
-    
+    output_dir = output_dirs{sess};
+    flags.output_dir = output_dir;
     %% Only include selected echo in the output
     out(sess).files = files;
-    
-    files = find_other_echoes(files, multiecho);       
+
+    files = find_other_echoes(files, multiecho);
     
     nechoes = length(files); 
     for echo = 1: nechoes
@@ -130,7 +114,7 @@ for sess = 1: nosessions
         flags.runmode = ('check');
         [slice_averages, new_imgs_headers] = slcavg_dupl(V, mask, noise, flags);
         h = show_save_slice_avg(slice_averages, V, flags);
-        figname = fullfile(flags.spike_dir,['check_spike_' [subject, '_' sess_dir, num2str(sess)], '_', [echo_dir, num2str(echo)] '.jpg']);
+        figname = fullfile(output_dir,['check_spike_' [subject, '_' num2str(sess)], '_', [num2str(echo)] '.jpg']);
 
         saveas(h, figname,'jpg');
 
@@ -153,7 +137,7 @@ end
 
 if strcmp('remove', flags.mode); spm('FigName', 'Spike Removal: Done');disp('batch_SPM5: spike removal done!'); end
 if strcmp('check', flags.mode); spm('FigName', 'Spike Check Done'); disp('batch_SPM5: spike check done!');end    
-
+close gcf;
 %==========================================================================
 
 
@@ -200,8 +184,8 @@ end
 %% function - preprend
 %----------------------------------------------------
 function PO = prepend(PI,pre)
-[pth,nm,xt,vr] = fileparts(deblank(PI));
-PO             = fullfile(pth,[pre nm xt vr]);
+[pth,nm,xt] = fileparts(deblank(PI));
+PO             = fullfile(pth,[pre nm xt]);
 %==========================================================================
 
 
@@ -209,8 +193,8 @@ PO             = fullfile(pth,[pre nm xt vr]);
 %----------------------------------------------------
 function save_mask(mask,imgs_headers,flags)
 header = imgs_headers(1); 
-[pth,nm,xt,vr] = fileparts(deblank(header.fname));
-header.fname = fullfile(flags.spike_dir,['spike_mask' xt vr]);
+[pth,nm,xt] = fileparts(deblank(header.fname));
+header.fname = fullfile(flags.output_dir,['spike_mask' xt]);
 header.descrip = ('spike_removal_mask');
 spm_write_vol(header, mask);
 %==========================================================================
@@ -262,7 +246,7 @@ for volume = 1:size(imgs_headers,1)
     if (strcmp('remove', flags.runmode) == 1) && flags.affected.vol(volume)
         new_imgs_headers{volume}.descrip = strcat(imgs_headers{volume}.descrip,' - un-spiked');
         if isempty(flags.file_prefix_addon)
-            movefile(imgs_headers{volume}.fname,flags.spike_dir);
+            movefile(imgs_headers{volume}.fname,output_dir);
             new_imgs_headers{volume}.fname = imgs_headers{volume}.fname;
         else
             new_imgs_headers{volume}.fname = prepend(imgs_headers{volume}.fname, flags.file_prefix_addon);
@@ -280,8 +264,8 @@ spm_progress_bar('Clear');
 %% function - show_save_slice_avg
 %----------------------------------------------------
 function h = show_save_slice_avg(slice_averages, imgs_headers, flags)
-[pth,nm,xt,vr] = fileparts(deblank(imgs_headers(1).fname));
-fullname = fullfile(flags.spike_dir,['spike_sliceavg_' vr]);
+[pth,nm,xt] = fileparts(deblank(imgs_headers(1).fname));
+fullname = fullfile(flags.output_dir,['spike_sliceavg']);
 save(fullname,'slice_averages');
 for i = 1:size(slice_averages, 2)
     norm_slc_avg (:,i) = slice_averages(:,i) / mean(slice_averages(:,i));
@@ -325,10 +309,10 @@ spm_progress_bar('Clear');
 %----------------------------------------------------
 function save_spikefile(affected_vol_slc, affected_vol, imgs_headers,flags)
 
-[pth,nm,xt,vr] = fileparts(deblank(imgs_headers(1).fname));
-fullname = fullfile(flags.spike_dir,['spikey_vols_' vr]);
+[pth,nm,xt] = fileparts(deblank(imgs_headers(1).fname));
+fullname = fullfile(flags.output_dir,['spikey_vols']);
 save(fullname,'affected_vol');
-fullname = fullfile(flags.spike_dir,['spikey_vol_slc_'  vr]);
+fullname = fullfile(flags.output_dir,['spikey_vol_slc']);
 save(fullname,'affected_vol_slc');
 %==========================================================================
 

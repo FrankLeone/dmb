@@ -20,6 +20,20 @@ USAGE
 - Note I included the items in the menus in the default sequential order
 - Note also that the SPM functions (like realign: estimate, write, and new segment) are actually references to the SPM functions, included in this menu for convenience.
 
+CODE STRUCTURE
+- Prefixes:
+* dmb is the prefix for all functions in the package
+* dmb_cfg is the prefix for all configurational files (dmb_cfg, dmb_cfg_defaults, dmb_cfg_get_defaults)
+* dmb_menu is the prefix of all upper level menus
+* dmb_item is the prefix for all actual items
+* dmb_item_spm is the prefix for all items directly linking to SPM
+* dmb_run is the code that is actually executed when a button is clicked
+* dmb_vout processes the output of the dmb_run function, used for dependencies
+- Directory structure
+* The directory structure follows the button structure, including numbers for the order of buttons
+- Comment structure
+* The code follows the Matlab code template from generously provided by Denis Gilbert (http://www.mathworks.com/matlabcentral/fileexchange/4908-m-file-header-template)
+
 QUESTIONS/COMMENTS/REQUESTS?
 Do no hesitate to contact me through the github interface at
 

@@ -37,7 +37,6 @@ echo_times.name         = 'Echo times';
 echo_times.help         = {'When were the different echoes taken (in ms)? Make sure you enter as many numbers as there are echoes.'};
 echo_times.strtype      = 'r';
 echo_times.num          = [1 inf];
-echo_times.def          = @(val)donders_get_defaults('combine_echoes.echo_times', val{:});
 
 n_pre_vols              = cfg_entry;
 n_pre_vols.tag          = 'n_pre_vols';
@@ -58,7 +57,7 @@ pre_vols.num     = [0 Inf];
 dir_PAIDweight          = cfg_entry;
 dir_PAIDweight.tag      = 'dir_PAIDweight';
 dir_PAIDweight.name     = 'PAIDweight dir';
-dir_PAIDweight.help     = {'Directory name in which the weights will be stored'};
+dir_PAIDweight.help     = {'Directory name in which the weights will be stored. Note, this is a subdirectory of the directory of where your dummy scans are located. If you want it to be at a different location/level, use ../'};
 dir_PAIDweight.strtype  = 's';
 dir_PAIDweight.num      = [1 inf];
 dir_PAIDweight.def      = @(val)dmb_cfg_get_defaults('combine_echoes.dir_PAIDweight', val{:});

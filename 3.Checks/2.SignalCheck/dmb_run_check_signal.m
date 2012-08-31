@@ -24,21 +24,14 @@ global defaults;
 spm_defaults;
 
 multiecho   = job.multiecho;
-output_dir  = determine_path(job.files{1});
-nr          = regexp(output_dir{1}, '/S\d+/');
-output_dir  = output_dir{1}(1:(min(nr)+3));
+output_dirs  = job.output_dir
+
 subject     = job.subject;
 
-signal_dir   = fullfile('fMRI', 'info', 'signal');
-if ~exist(fullfile(output_dir, signal_dir), 'dir')
-    mkdir(fullfile(output_dir, signal_dir));
-end
 % if (strcmp(job.files{1}{1}([end-1 end]), ',1'))
 %     sessions      = cellfun(@(x)x(1:(end-2)), job.files, 'UniformOutput', false);
 % else
 sessions      = job.files;
-
-out.files = sessions;
 
 if ~iscell(sessions)
     sessions = {sessions};
@@ -46,25 +39,20 @@ end
 
 nosessions = length(sessions);
 
-% end
-func_dir        = job.dir_branch.func_dir;
-struc_dir       = job.dir_branch.struc_dir;
-echo_dir        = job.dir_branch.echo_dir;
-sess_dir        = job.dir_branch.sess_dir;
-type_dir        = job.dir_branch.type_dir;
-
-
-
 %% loop over subjects and sessions
 %----------------------------------------------------
 fprintf('\n\nbatch_SPM5: slice & global signal stability check initiated.');
 
-signal_dir = fullfile(output_dir, signal_dir);
-if ~exist(signal_dir,'dir'); mkdir(signal_dir); end
+if length(output_dirs) == 1 && length(sessions) > 1
+    output_dirs = repmat(output_dirs, size(sessions));
+end
 
 for sess = 1: nosessions
     files = sessions{sess};
+    out(sess).files = files;
     files = find_other_echoes(files, multiecho);
+    
+    signal_dir = output_dirs{sess};
         
     nechoes = length(files); 
     for echo = 1: nechoes
@@ -80,12 +68,12 @@ for sess = 1: nosessions
                 
         [slicesig,globalsig] = calc_sig(imgs);
 
-        save(fullfile(signal_dir,['CheckSignal', '_', [subject '_' sess_dir, num2str(sess)], '_', [echo_dir, num2str(echo) '.mat']]),'*sig');
+        save(fullfile(signal_dir,['CheckSignal', '_', [subject '_' num2str(sess)], '_', [num2str(echo) '.mat']]),'*sig');
         
-        h = figure('Name',['CheckSignal_' subject '_' sess_dir num2str(sess) '_' [echo_dir, num2str(echo)]],'NumberTitle','off');
+        h = figure('Name',['CheckSignal_' subject '_' num2str(sess) '_' [num2str(echo)]],'NumberTitle','off');
         set(h,'Color','w');
         subplot(2,2,1); plot(slicesig);
-        title_str = ['Stab check: ',subject ' ' sess_dir num2str(sess) ' ' [echo_dir, num2str(echo)]];
+        title_str = ['Stab check: ',subject ' ' num2str(sess) ' ' [num2str(echo)]];
 
         title(['Slice Sig ' title_str]);
         subplot(2,2,3); plot(var(slicesig));
@@ -95,10 +83,9 @@ for sess = 1: nosessions
         subplot(2,2,4); bar(var(globalsig));
         title('Variance:');
 
-        figname = fullfile(signal_dir,sprintf('CheckSignal_%s%s%s.jpg', [subject '_' sess_dir, num2str(sess)], '_', [echo_dir, num2str(echo)]));
+        figname = fullfile(signal_dir,sprintf('CheckSignal_%s%s%s.jpg', [subject '_' num2str(sess)], '_', [num2str(echo)]));
         saveas(h, figname,'jpg');
-        close(h);
-        
+        close(h);        
     end
     
 end

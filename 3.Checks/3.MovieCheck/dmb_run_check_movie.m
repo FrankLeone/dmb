@@ -5,25 +5,14 @@ global defaults;
 spm_defaults;
 
 multiecho   = job.multiecho;
-output_dir  = './' ;%determine_path(job.files{1});
-% nr          = regexp(output_dir{1}, '/S\d+/');
-% output_dir  = output_dir{1}(1:(min(nr)+3));
+output_dirs  = job.output_dir;
 subject     = job.subject;
 
-movie_dir   = fullfile('fMRI', 'info', 'movies');
-if ~exist(fullfile(output_dir, movie_dir), 'dir')
-    mkdir(fullfile(output_dir, movie_dir));
-end
 % if (strcmp(job.files{1}{1}([end-1 end]), ',1'))
 %     sessions      = cellfun(@(x)x(1:(end-2)), job.files, 'UniformOutput', false);
 % else
 sessions      = job.files;
 % end
-func_dir        = job.dir_branch.func_dir;
-struc_dir       = job.dir_branch.struc_dir;
-echo_dir        = job.dir_branch.echo_dir;
-sess_dir        = job.dir_branch.sess_dir;
-type_dir        = job.dir_branch.type_dir;
 
 if ~iscell(sessions)
     sessions = {sessions};
@@ -55,16 +44,22 @@ cfg.max_imgs    = INFO.check.movie.nr_imgs;
 cfg.save_temp   = INFO.check.movie.save_temp;
 cfg.fps         = INFO.check.movie.fps;
 
+if length(output_dirs) == 1 && length(sessions) > 1
+    output_dirs = repmat(output_dirs, size(sessions));
+end
+
 for sess = 1: nosessions
-    files = sessions(sess);
-%     files = find_other_echoes(files, multiecho);
+    output_dir = output_dirs{sess};
+    files = sessions{sess};
+    out(sess).files = files;
+    files = find_other_echoes(files, multiecho);
         
     nechoes = length(files); 
     for echo = 1: nechoes
         imgs = files{echo};
 
-        mov_default_name = fullfile(output_dir, movie_dir, 'default', '_', [subject, '_' sess_dir, num2str(sess)], '_', [echo_dir, num2str(echo)]);
-        mov_contrast_name = fullfile(output_dir, movie_dir, 'contrast', '_', [subject, '_' sess_dir, num2str(sess)], '_', [echo_dir, num2str(echo)]);
+        mov_default_name = fullfile(output_dir,  'default', '_', [subject, '_'  num2str(sess)], '_', [num2str(echo)]);
+        mov_contrast_name = fullfile(output_dir,  'contrast', '_', [subject, '_'  num2str(sess)], '_', [num2str(echo)]);
 
         n = length(imgs);
         m = INFO.check.movie.nr_imgs;
@@ -141,18 +136,18 @@ for sess = 1: nosessions
             
             do_default = 0; do_contrast = 0;
             if strcmpi(cfg.which,'both') || strcmpi(cfg.which,'default')
-                mov_default_name = fullfile(output_dir, movie_dir,sprintf('CheckMosaicMovie_%s%s%s_default.avi',[subject, '_', sess_dir, num2str(sess)], '_', [echo_dir, num2str(echo)]));
+                mov_default_name = fullfile(output_dir, sprintf('CheckMosaicMovie_%s%s%s_default.avi',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
                 do_default = 1;
             end
             if strcmpi(cfg.which,'both') || strcmpi(cfg.which,'contrast') && ...
                     cfg.contrast ~= 0 && cfg.bright ~= 0
-                mov_contrast_name = fullfile(output_dir, movie_dir,sprintf('CheckMosaicMovie_%s%s%s_contrast.avi',[subject, '_', sess_dir, num2str(sess)], '_', [echo_dir, num2str(echo)]));
+                mov_contrast_name = fullfile(output_dir, sprintf('CheckMosaicMovie_%s%s%s_contrast.avi',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
                 do_contrast = 1;
             end
             
             if cfg.save_temp
-                temp_default_file = fullfile(output_dir, movie_dir,sprintf('TempCheckMosaicMovie_%s%s%s_default.mat',[subject, '_', sess_dir, num2str(sess)], '_', [echo_dir, num2str(echo)]));
-                temp_contrast_file = fullfile(output_dir, movie_dir,sprintf('TempCheckMosaicMovie_%s%s%s_contrast.mat',[subject, '_', sess_dir, num2str(sess)], '_', [echo_dir, num2str(echo)]));
+                temp_default_file = fullfile(output_dir, sprintf('TempCheckMosaicMovie_%s%s%s_default.mat',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
+                temp_contrast_file = fullfile(output_dir, sprintf('TempCheckMosaicMovie_%s%s%s_contrast.mat',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
             end
 
             if do_default
@@ -232,5 +227,6 @@ for sess = 1: nosessions
             clear mov_contrast;
             fprintf('\tdone');
         end
+        close gcf;
     end
 end

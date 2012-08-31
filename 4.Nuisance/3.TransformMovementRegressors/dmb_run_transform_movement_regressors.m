@@ -2,7 +2,7 @@ function out = dmb_run_transform_movement_regressors(job)
 
 regressors      = job.regressor;
 order           = job.order;
-nechoes         = job.nechoes;
+nechoes         = 1;
 
 for nr_sess = 1: length(regressors)
     R = load(regressors{nr_sess}{1});

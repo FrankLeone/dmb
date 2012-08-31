@@ -29,4 +29,4 @@ if ~isdeployed
 end
 % these two files are now on MATLABs path
 cfg = dmb_cfg;
-def = dmb_cfg_defaults;
+def = dmb_cfg_get_defaults;

@@ -29,9 +29,9 @@ function varargout = dmb_cfg_get_defaults(defstr, varargin)
 
 %------------- BEGIN CODE --------------
 global dmb_defaults;
-if isempty(dmb_defaults)
+% if isempty(dmb_defaults)
     dmb_cfg_defaults;
-end
+% end
 
 if nargin == 0
     varargout{1} = dmb_defaults;

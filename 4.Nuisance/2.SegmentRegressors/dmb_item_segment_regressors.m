@@ -58,7 +58,7 @@ dir.num     = [1 1];
 % dirs
 % ---------------------------------------------------------------------
 dirs         = cfg_repeat;
-dirs.tag     = 'out_paths';
+dirs.tag     = 'output_directories';
 dirs.name    = 'Output directories';
 dirs.help    = {'Output directories: select one for each session, or just one to be used for all sessions.'};
 dirs.values  = {dir };
@@ -71,6 +71,6 @@ dmb_item_segment_regressors      = cfg_exbranch;
 dmb_item_segment_regressors.name = 'Regressors for segments';
 dmb_item_segment_regressors.tag  = 'segment_regressors';
 dmb_item_segment_regressors.help = {'Calculates average intensity over the different segments and converts these to regressors. NOTE: the segments should be in the space (e.g.: coregistrated) as the functional data. NOTE2: If you use new segment, this is the order of segments coming out:\n *Gray matter\n *White matter\n *CSF\n *Fat \n *Skull\n *Out of brain\n To get the latter, put the last segment (",6") to "native" in the New Segment settings. Also note you probably don´t want a Gray matter regressor.'};
-dmb_item_segment_regressors.val  = {segments, generic dirs};
-dmb_item_segment_regressors.prog = @dmb_run_segment_regressors;
-dmb_item_segment_regressors.vout = @dmb_vout_segment_regressors;
+dmb_item_segment_regressors.val  = {segments generic dirs};
+% dmb_item_segment_regressors.prog = @dmb_run_segment_regressors;
+% dmb_item_segment_regressors.vout = @dmb_vout_segment_regressors;
