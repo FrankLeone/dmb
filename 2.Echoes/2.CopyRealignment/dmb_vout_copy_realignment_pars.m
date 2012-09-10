@@ -1,5 +1,5 @@
 function dep = dmb_vout_copy_realignment_pars(job)
-nechoes = donders_get_defaults('nechoes');
+nechoes = job.nechoes;
 q = 1;
 for k=1: size(job.files, 2)
     for l = 1: nechoes 

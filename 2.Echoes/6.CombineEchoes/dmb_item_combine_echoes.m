@@ -29,7 +29,7 @@ combine_method.name    = 'Combine method';
 combine_method.help    = {'How should the echoes be combined? Pick the method of choice.'};
 combine_method.labels  = {'sum' 'paid-v1' 'paid-v2' 'paid-v3' 'pre-paid'};
 combine_method.values  = {'sum' 'paid-v1' 'paid-v2' 'paid-v3' 'pre-paid'};
-combine_method.def     = @(val)donders_get_defaults('combine_echoes.combine_method', val{:});
+combine_method.def     = @(val)dmb_cfg_get_defaults('combine_echoes.combine_method', val{:});
 
 echo_times              = cfg_entry;
 echo_times.tag          = 'echo_times';
@@ -41,10 +41,10 @@ echo_times.num          = [1 inf];
 n_pre_vols              = cfg_entry;
 n_pre_vols.tag          = 'n_pre_vols';
 n_pre_vols.name         = 'Number of pre volumes';
-n_pre_vols.help         = {'How many echoes should be used to determine the weights?'};
+n_pre_vols.help         = {'How many scans should be used to determine the weights? If you select specific scans in the Pre volumes field, this value will be ignored.'};
 n_pre_vols.strtype      = 'n';
 n_pre_vols.num          = [0 1];
-n_pre_vols.def          = @(val)donders_get_defaults('combine_echoes.n_pre_vols', val{:});
+n_pre_vols.def          = @(val)dmb_cfg_get_defaults('combine_echoes.n_pre_vols', val{:});
 
 pre_vols         = cfg_files;
 pre_vols.tag     = 'pre_vols';

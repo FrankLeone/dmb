@@ -135,6 +135,6 @@ dmb_item_order_converted_dicoms           = cfg_exbranch;
 dmb_item_order_converted_dicoms.tag       = 'order_converted_dicoms';
 dmb_item_order_converted_dicoms.name      = 'Order converted dicoms';
 dmb_item_order_converted_dicoms.val       = {files subject move expected_n_sessions dir_branch};
-dmb_item_order_converted_dicoms.help      = {'Orders the niis in interpretable directories. NOTE: This crucially depends on the DICOMs being converted using "ICED" filenames, see options of the DICOM conversion module.'};
+dmb_item_order_converted_dicoms.help      = {'Orders the niis in interpretable directories. NOTE I: This module is at the moment restricted to a certain structure and not as dynamic as it should be. Specifically, it converts the ICED filenames to a tree-structure: func-sess#-E and struc-type#, where in struc all non-functional scans end up (so also AA scout, etc). NOTE: This crucially depends on the DICOMs being converted using "ICED" filenames, see options of the DICOM conversion module.'};
 dmb_item_order_converted_dicoms.prog      = @dmb_run_order_converted_dicoms;
 dmb_item_order_converted_dicoms.vout      = @dmb_vout_order_converted_dicoms;

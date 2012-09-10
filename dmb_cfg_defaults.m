@@ -36,6 +36,7 @@ dmb_defaults.order_niis.expected_n_sessions       = 1;
 dmb_defaults.combine_echoes.combine_method     = 'paid-v1';
 dmb_defaults.combine_echoes.n_pre_vols         = 30;
 dmb_defaults.combine_echoes.dir_PAIDweight     = '../PAIDweight';
+dmb_defaults.combine_echoes.nechoes            = 5;
 
 dmb_defaults.combine_regressors.filename_regr = 'nuisanceRegressors';
 

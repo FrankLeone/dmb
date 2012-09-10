@@ -1,4 +1,23 @@
-function dmb_item_check_movie = dmb_item_check_movie
+function dmb_item_order_converted_dicoms = dmb_item_order_converted_dicoms
+% DMB_ITEM_ORDER_CONVERTED_DICOMS - This file descibes a menu item to sort
+% converted Dicoms
+%
+% Other m-files required: Donders Matlab Batch package
+% Subfunctions: All other function of the Matlab Batch package
+% MAT-files required: none
+%
+% See also: 
+
+% Author: Frank Leone
+% Donders Institute for Brain, Cognition and Behavior
+% email: f.leone@donders.ru.nl
+% Website: http://frank.leone.nl
+% August 2012; Last revision: 28-08-2012
+
+% TODO:
+% - Fill the function
+%------------- BEGIN CODE --------------
+
 % ---------------------------------------------------------------------
 % files Session
 % ---------------------------------------------------------------------
@@ -11,16 +30,6 @@ files.ufilter = '.*';
 files.num     = [1 Inf];
 
 % ---------------------------------------------------------------------
-% generic Data
-% ---------------------------------------------------------------------
-generic         = cfg_repeat;
-generic.tag     = 'generic';
-generic.name    = 'Data';
-generic.help    = {'Subjects or sessions. The same parameters specified below will be applied to all sessions.'};
-generic.values  = {files };
-generic.num     = [1 Inf];
-
-% ---------------------------------------------------------------------
 % subject Subject name
 % ---------------------------------------------------------------------
 subject         = cfg_entry;
@@ -31,15 +40,18 @@ subject.strtype = 's';
 subject.num     = [1  Inf];
 
 % ---------------------------------------------------------------------
-% multiecho Multiecho switch
+% move Move switch
 % ---------------------------------------------------------------------
-multiecho         = cfg_menu;
-multiecho.tag     = 'multiecho';
-multiecho.name    = 'multiecho';
-multiecho.help    = {'Multiecho switch: use multiecho or not?'};
-multiecho.labels  = {'Off', 'On'};
-multiecho.values  = {0, 1};
-multiecho.def     = @(val)donders_get_defaults('multiecho', val{:});
+move         = cfg_menu;
+move.tag     = 'move';
+move.name    = 'Move or copy files?';
+move.help    = {'Move switch: actually move the file, or rather copy?'};
+move.labels  = {
+                'Copy'
+                'Move'
+                };
+move.values  = {0 1};
+move.def     = @(val)dmb_cfg_get_defaults('order_niis.move', val{:});
 
 % ---------------------------------------------------------------------
 % func_dir Name of the directory for the functional scans
@@ -50,7 +62,7 @@ func_dir.name    = 'Func';
 func_dir.help    = {'Prefix for the name of the directory for the functional scans'};
 func_dir.strtype = 's';
 func_dir.num     = [1  Inf];
-func_dir.def     = @(val)donders_get_defaults('order_niis.func_dir', val{:});
+func_dir.def     = @(val)dmb_cfg_get_defaults('order_niis.func_dir', val{:});
 
 % ---------------------------------------------------------------------
 % struc_dir Name of the directory for the structural scans
@@ -61,7 +73,7 @@ struc_dir.name    = 'Struc';
 struc_dir.help    = {'Prefix for the name of the directory for the structural scans'};
 struc_dir.strtype = 's';
 struc_dir.num     = [1  Inf];
-struc_dir.def     = @(val)donders_get_defaults('order_niis.struc_dir', val{:});
+struc_dir.def     = @(val)dmb_cfg_get_defaults('order_niis.struc_dir', val{:});
 
 % ---------------------------------------------------------------------
 % echo_dir Name of the directory for the echoes
@@ -72,7 +84,7 @@ echo_dir.name    = 'Echoes';
 echo_dir.help    = {'Prefix used for the echoes dirs'};
 echo_dir.strtype = 's';
 echo_dir.num     = [1  Inf];
-echo_dir.def     = @(val)donders_get_defaults('order_niis.echo_dir', val{:});
+echo_dir.def     = @(val)dmb_cfg_get_defaults('order_niis.echo_dir', val{:});
 
 % ---------------------------------------------------------------------
 % sess_dir Name of the directory for the sessions
@@ -83,7 +95,7 @@ sess_dir.name    = 'Session';
 sess_dir.help    = {'Prefix used for the session dirs'};
 sess_dir.strtype = 's';
 sess_dir.num     = [1  Inf];
-sess_dir.def     = @(val)donders_get_defaults('order_niis.sess_dir', val{:});
+sess_dir.def     = @(val)dmb_cfg_get_defaults('order_niis.sess_dir', val{:});
 
 % ---------------------------------------------------------------------
 % type_dir Name of the directory for the echoes
@@ -93,7 +105,7 @@ type_dir.tag     = 'type_dir';
 type_dir.name    = 'Type';
 type_dir.help    = {'Prefix used for the type dirs, used in the structural directory'};
 type_dir.strtype = 's';
-type_dir.def     = @(val)donders_get_defaults('order_niis.type_dir', val{:});
+type_dir.def     = @(val)dmb_cfg_get_defaults('order_niis.type_dir', val{:});
 type_dir.num     = [1  Inf];
 
 % ---------------------------------------------------------------------
@@ -106,12 +118,23 @@ dir_branch.val  = {func_dir struc_dir sess_dir type_dir echo_dir};
 dir_branch.help = {'What should the directory structure look like? Can leave these to their default values.'};
 
 % ---------------------------------------------------------------------
-% dmb_item_check_movie
+% expected_n_sessions Number of sessions to be expected
 % ---------------------------------------------------------------------
-dmb_item_check_movie  = cfg_exbranch;
-dmb_item_check_movie.tag     = 'cfg_check_movie';
-dmb_item_check_movie.name    = 'Check movie';
-dmb_item_check_movie.val     = {generic, subject, multiecho, dir};
-dmb_item_check_movie.help    = {'Creates an avi movie of your raw data which you can view outside matlab to inspect your data visually.'};
-dmb_item_check_movie.prog = @dmb_run_check_movie;
-dmb_item_check_movie.vout = @dmb_vout_check_movie;
+expected_n_sessions         = cfg_entry;
+expected_n_sessions.tag     = 'expected_n_sessions';
+expected_n_sessions.name    = 'Number of sessions';
+expected_n_sessions.help    = {'Expected number of sessions.'};
+expected_n_sessions.strtype = 'n';
+expected_n_sessions.num     = [1  inf];
+expected_n_sessions.def     = @(val)dmb_cfg_get_defaults('order_niis.expected_n_sessions', val{:});
+
+% ---------------------------------------------------------------------
+% Main menu item object
+% ---------------------------------------------------------------------
+dmb_item_order_converted_dicoms           = cfg_exbranch;
+dmb_item_order_converted_dicoms.tag       = 'order_converted_dicoms';
+dmb_item_order_converted_dicoms.name      = 'Order converted dicoms';
+dmb_item_order_converted_dicoms.val       = {files subject move expected_n_sessions dir_branch};
+dmb_item_order_converted_dicoms.help      = {'Orders the niis in interpretable directories. NOTE I: This module is at the moment restricted to a certain structure and not as dynamic as it should be. Specifically, it converts the filenames to a tree-structNOTE: This crucially depends on the DICOMs being converted using "ICED" filenames, see options of the DICOM conversion module.'};
+dmb_item_order_converted_dicoms.prog      = @dmb_run_order_converted_dicoms;
+dmb_item_order_converted_dicoms.vout      = @dmb_vout_order_converted_dicoms;

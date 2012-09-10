@@ -20,7 +20,7 @@ function dmb_menu_combine_echoes = dmb_menu_combine_echoes
 dmb_menu_combine_echoes             = cfg_repeat;
 dmb_menu_combine_echoes.name        = 'Echo combination';
 dmb_menu_combine_echoes.tag         = 'echo_combination';
-dmb_menu_combine_echoes.values      = {dmb_item_spm_realign_estimate, dmb_item_copy_realignments_pars, dmb_item_combine_sessions, dmb_item_spm_realignment_write, dmb_item_split_sessions, dmb_item_combine_echoes};
+dmb_menu_combine_echoes.values      = {dmb_item_spm_realign_estimate, dmb_item_copy_realignment_pars, dmb_item_combine_sessions, dmb_item_spm_realignment_write, dmb_item_split_sessions, dmb_item_combine_echoes};
 dmb_menu_combine_echoes.forcestruct = true;
 dmb_menu_combine_echoes.help        = {'Function to perform the steps required for echo combination.'};
 
