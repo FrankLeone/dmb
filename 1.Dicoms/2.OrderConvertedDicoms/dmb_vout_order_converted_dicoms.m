@@ -1,5 +1,5 @@
 function dep = dmb_vout_order_converted_dicoms(job)
-nechoes = donders_get_defaults('nechoes');
+nechoes = job.nechoes;
 for k=1: (job.expected_n_sessions)
     for l = 1: nechoes 
         dep((k-1) * nechoes + l)            = cfg_dep;
