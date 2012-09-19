@@ -143,11 +143,11 @@ nechoes.def          = @(val)dmb_cfg_get_defaults('combine_echoes.nechoes', val{
 % sess_dir Name of the directory for the sessions
 % ---------------------------------------------------------------------
 rename_table         = cfg_entry;
-rename_table.tag     = 'rename_table';
-rename_table.name    = 'Rename table';
-rename_table.help    = {'How to rename the numbered sessions? E.g., if there is a sess01, sess02 ..., sess10, sess11, etc., you can specify in a cell matrix whatever old name should be mapped to new name of your choice. E.g. {''sess01'', ''prescans''; ''sess02'', ''sess01''} will rename sess01 to prescans and sess02 to sess01. To ignore a session (meaning it is not copied/moved by the script, but left to keep its old naming), leave the second column empty. Note, this assumes you what the order was of your sessions, which you want to include and which not.'};
+rename_table.tag     = 'sess_dir';
+rename_table.name    = 'Session';
+rename_table.help    = {'How to '};
 rename_table.strtype = 'e';
-rename_table.num     = [0  Inf];
+rename_table.num     = [inf  Inf];
 
 % ---------------------------------------------------------------------
 % Main menu item object

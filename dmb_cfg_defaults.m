@@ -22,7 +22,7 @@ global dmb_defaults
 
 %% Defaults for dmb_item_spm_dicom_conversion
 dmb_defaults.dicoms.conversion.format = 'nii';
-dmb_defaults.dicoms.conversion.ICED = 1;
+dmb_defaults.dicoms.conversion.ICED = 0;
 
 %% Defaults for dmb_item_order_converted_dicoms
 dmb_defaults.order_niis.func_dir   = 'func';

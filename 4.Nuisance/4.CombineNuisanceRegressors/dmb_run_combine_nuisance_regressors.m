@@ -1,7 +1,7 @@
 function out = dmb_run_combine_nuisance_regressors (job)
 
 regressors  = job.regressor;
-regr_path   = determine_path(regressors{1});
+regr_path   = job.target_dir;%determine_path(regressors{1});
 filename    = fullfile(regr_path{1}, job.filename);
 
 if ~exist(regr_path{1}, 'dir')

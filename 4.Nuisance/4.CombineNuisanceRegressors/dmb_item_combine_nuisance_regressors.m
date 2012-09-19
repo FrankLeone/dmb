@@ -8,6 +8,14 @@ regressor.filter           = 'mat';
 regressor.ufilter          = '.*';
 regressor.num              = [1 1];
 
+dir                  = cfg_files;
+dir.name             = 'Target dir';
+dir.tag              = 'target_dir';
+dir.help             = {'Where should the regressors be written?'};
+dir.filter           = 'dir';
+dir.ufilter          = '.*';
+dir.num              = [1 1];
+
 % ---------------------------------------------------------------------
 % regressors
 % ---------------------------------------------------------------------
@@ -33,6 +41,6 @@ dmb_item_combine_nuisance_regressors          = cfg_exbranch;
 dmb_item_combine_nuisance_regressors.name     = 'Combine regressors';
 dmb_item_combine_nuisance_regressors.tag      = 'combine_regressors';
 dmb_item_combine_nuisance_regressors.help     = {'Combine multiple regressor files into one'};
-dmb_item_combine_nuisance_regressors.val      = {regressors, filename_regr};
+dmb_item_combine_nuisance_regressors.val      = {regressors, dir, filename_regr};
 dmb_item_combine_nuisance_regressors.prog     = @dmb_run_combine_nuisance_regressors;
 dmb_item_combine_nuisance_regressors.vout     = @dmb_vout_combine_nuisance_regressors;

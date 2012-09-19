@@ -7,7 +7,7 @@ ICED_filenames = false;
 rename_table = job.rename_table;
 dir = fileparts(job.files{1});
 
-% If it is only a string, it is probably a filename
+% If it is only 
 if ischar(rename_table)
     if exist(rename_table, 'file')
         fid         = fopen(rename_table);
