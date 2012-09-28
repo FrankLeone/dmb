@@ -20,5 +20,5 @@ end
 sessions = sort(sessions);
 warning('I made it order the session numbers, might influence other scripts!');
 for nr_sess = 1: size(sess_nrs, 1)
-    out(nr_sess).data = total_data(sessions == nr_sess);
+    out{nr_sess} = total_data(sessions == nr_sess);
 end

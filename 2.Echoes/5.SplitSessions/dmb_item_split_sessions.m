@@ -2,13 +2,13 @@ function dmb_menu_split_sessions = dmb_menu_split_sessions
 % ---------------------------------------------------------------------
 % files Session
 % ---------------------------------------------------------------------
-files         = cfg_files;
-files.tag     = 'files';
-files.name    = 'Session';
-files.help    = {'Select images.'};
-files.filter = 'image';
-files.ufilter = '.*';
-files.num     = [1 Inf];
+data         = cfg_files;
+data.tag     = 'files';
+data.name    = 'Session';
+data.help    = {'Select images.'};
+data.filter = 'image';
+data.ufilter = '.*';
+data.num     = [1 Inf];
 
 
 % ---------------------------------------------------------------------
@@ -28,7 +28,7 @@ expected_n_sessions.def     = @(val)dmb_cfg_get_defaults('order_niis.expected_n_
 dmb_menu_split_sessions              = cfg_exbranch;
 dmb_menu_split_sessions.name         = 'Split sessions';
 dmb_menu_split_sessions.tag          = 'split_sessions';
-dmb_menu_split_sessions.val          = {files, expected_n_sessions};
+dmb_menu_split_sessions.val          = {data, expected_n_sessions};
 dmb_menu_split_sessions.help         = {'Splits the sessions on the basis of their directory structure. Useful in combination with combine sessions, with for example a reslicing in-between.'};
 dmb_menu_split_sessions.prog         = @dmb_run_split_sessions;
 dmb_menu_split_sessions.vout         = @dmb_vout_split_sessions;

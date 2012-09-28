@@ -2,13 +2,13 @@ function dmb_menu_combine_sessions = dmb_menu_combine_sessions
 % ---------------------------------------------------------------------
 % files Session
 % ---------------------------------------------------------------------
-files         = cfg_files;
-files.tag     = 'files';
-files.name    = 'Session';
-files.help    = {'Select images.'};
-files.filter = 'image';
-files.ufilter = '.*';
-files.num     = [1 Inf];
+data         = cfg_files;
+data.tag     = 'files';
+data.name    = 'Session';
+data.help    = {'Select images.'};
+data.filter = 'image';
+data.ufilter = '.*';
+data.num     = [1 Inf];
 
 % ---------------------------------------------------------------------
 % generic Data
@@ -17,7 +17,7 @@ sessions         = cfg_repeat;
 sessions.tag     = 'generic';
 sessions.name    = 'Data';
 sessions.help    = {'Subjects or sessions. The same parameters specified below will be applied to all sessions.'};
-sessions.values  = {files };
+sessions.values  = {data };
 sessions.num     = [1 Inf];
 
 % ---------------------------------------------------------------------

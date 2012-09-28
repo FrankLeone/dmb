@@ -1,0 +1,20 @@
+function out = dmb_spm_run_realign_estimate(job)
+
+%% Split sessions
+job.data = dmb_run_split_sessions_inline(job);
+
+%% Call original function
+outSplit = spm_run_realign_estimate(job);
+
+%% Combine sessions again
+[out no_sessions] = dmb_run_combine_sessions_inline(outSplit);
+
+%% Move rp files
+
+%% Move scans
+
+
+%%% Test call
+% job.data = spm_select(inf, 'image', 'Select multiple sessions of data', [], '/home/action/fraleo/Data/Exp1_Saccades_phase/S10/fMRI/Test', '^f.*');
+% job.data = mat2cell(job.data, ones(size(job.data, 1), 1), size(job.data, 2));
+% job.expected_n_sessions = 2;

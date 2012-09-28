@@ -2,7 +2,7 @@ function dep = dmb_vout_combine_sessions(job)
 
 dep(1)              = cfg_dep;
 dep(1).sname        = 'Combined data';
-dep(1).src_output   = substruct('()',{1}, '.','total_data');
+dep(1).src_output   = substruct('()',{1}, '.','data');
 dep(1).tgt_spec     = cfg_findspec({{'filter', 'image', 'strtype', 'e'}});
 
 dep(2)              = cfg_dep;
