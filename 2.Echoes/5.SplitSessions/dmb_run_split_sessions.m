@@ -1,6 +1,11 @@
 function out = dmb_run_split_sessions(job)
 
-total_data = job.data;
+allFieldnames = fieldnames(job);
+if ismember(allFieldnames, 'data');
+    total_data = job.data;
+else
+    total_data = job.files;
+end
 no_sessions = job.expected_n_sessions;
 
 filenames = fileCells2Mat(total_data);
@@ -17,8 +22,9 @@ for nr_sep = 1: length(separators)
     end
 end
 
-sessions = sort(sessions);
-warning('I made it order the session numbers, might influence other scripts!');
+assert(all(diff(sessions)>=0));
+% sessions = sort(sessions);
+% warning('I made it order the session numbers, might influence other scripts!');
 for nr_sess = 1: size(sess_nrs, 1)
     out(nr_sess).data = total_data(sessions == nr_sess);
 end

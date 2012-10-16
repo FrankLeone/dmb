@@ -150,12 +150,38 @@ expected_n_sessions.num     = [1  inf];
 expected_n_sessions.def     = @(val)dmb_cfg_get_defaults('order_niis.expected_n_sessions', val{:});
 
 % ---------------------------------------------------------------------
+% data Session
+% ---------------------------------------------------------------------
+targetDir         = cfg_files;
+targetDir.tag     = 'targetDir';
+targetDir.name    = 'Target Dir movement parameters';
+targetDir.help    = {'Select scans for this session. In the coregistration step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'};
+targetDir.filter = 'dir';
+targetDir.ufilter = '.*';
+targetDir.num     = [0 1];
+
+% ---------------------------------------------------------------------
+% wrap Wrapping
+% ---------------------------------------------------------------------
+relativeDir         = cfg_menu;
+relativeDir.tag     = 'relativeDir';
+relativeDir.name    = 'Retain separate session dirs?';
+relativeDir.help    = {
+                
+}';
+relativeDir.labels = {
+               'Move all to one folder'
+               'Retain session directories'
+}';
+relativeDir.values = {false, true};
+
+% ---------------------------------------------------------------------
 % estimate Realign: Estimate
 % ---------------------------------------------------------------------
 estimate         = cfg_exbranch;
 estimate.tag     = 'estimate';
 estimate.name    = 'Realign: Estimate';
-estimate.val     = {data eoptions expected_n_sessions};
+estimate.val     = {data eoptions expected_n_sessions targetDir relativeDir};
 estimate.help    = {
                     'This routine realigns a time-series of images acquired from the same subject using a least squares approach and a 6 parameter (rigid body) spatial transformation/* \cite{friston95a}*/.  The first image in the list specified by the user is used as a reference to which all subsequent scans are realigned. The reference scan does not have to the the first chronologically and it may be wise to chose a "representative scan" in this role.'
                     ''

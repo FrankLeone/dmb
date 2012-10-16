@@ -1,6 +1,10 @@
 function out = dmb_run_copy_realignment_pars (job)
 
-sessions      = job.files;
+%% Split sessions
+job.data = dmb_run_split_sessions_inline(job);
+
+%% Apply operation
+sessions      = job.data;
 multiecho     = true;
 
 if ~iscell(sessions)
@@ -41,10 +45,16 @@ for sess = 1: nosessions
             spm_get_space(imgs{nr_V}, spm_get_space(orig_files{nr_V}));
         end       
         nr = (sess-1) * nechoes + 1;
-        out(q).files = imgs;
+%         outSplit.sess{q} = imgs;
         all_imgs_one_session = [all_imgs_one_session; imgs];
-        q = q + 1;
+%         q = q + 1;
     end
-    out(q).files = all_imgs_one_session;
+    outSplit.sess{q} = all_imgs_one_session;
     q = q + 1;
 end
+
+%% Combine sessions again
+[out.data no_sessions] = dmb_run_combine_sessions_inline(outSplit);
+
+%% And check whether splitting and combining sessions went alright
+assert (no_sessions == job.expected_n_sessions);

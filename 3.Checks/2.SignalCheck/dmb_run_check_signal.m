@@ -17,6 +17,10 @@ function out = dmb_run_check_signal (job)
 % version 2009-02-04
 %--------------------------------------------------------------------------
 
+%% Split sessions
+job.data = dmb_run_split_sessions_inline(job);
+expected_n_sessions = job.expected_n_sessions;
+
 %% sort input
 %----------------------------------------------------
 global defaults;
@@ -31,7 +35,7 @@ subject     = job.subject;
 % if (strcmp(job.files{1}{1}([end-1 end]), ',1'))
 %     sessions      = cellfun(@(x)x(1:(end-2)), job.files, 'UniformOutput', false);
 % else
-sessions      = job.files;
+sessions      = job.data;
 
 if ~iscell(sessions)
     sessions = {sessions};
@@ -49,7 +53,7 @@ end
 
 for sess = 1: nosessions
     files = sessions{sess};
-    out(sess).files = files;
+    out.sess{sess} = files;
     files = find_other_echoes(files, multiecho);
     
     signal_dir = output_dirs{sess};
@@ -95,6 +99,11 @@ clear global defaults;
 fprintf('\nbatch_SPM5: slice & global signal stability check done.\n');
 %==========================================================================
 
+%% Combine sessions again
+[out.data no_sessions] = dmb_run_combine_sessions_inline(out);
+
+%% Check whether splitting and combing went alright
+assert(no_sessions == expected_n_sessions);
 
 %% function - calc_sig
 %----------------------------------------------------

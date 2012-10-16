@@ -25,7 +25,7 @@ files         = cfg_files;
 files.tag     = 'files';
 files.name    = 'Session';
 files.help    = {'Select images.'};
-files.filter = 'image';
+files.filter  = 'image';
 files.ufilter = '.*';
 files.num     = [1 Inf];
 

@@ -3,8 +3,8 @@ function dmb_menu_split_sessions = dmb_menu_split_sessions
 % files Session
 % ---------------------------------------------------------------------
 data         = cfg_files;
-data.tag     = 'files';
-data.name    = 'Session';
+data.tag     = 'data';
+data.name    = 'Data';
 data.help    = {'Select images.'};
 data.filter = 'image';
 data.ufilter = '.*';

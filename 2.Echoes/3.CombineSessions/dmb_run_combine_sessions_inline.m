@@ -6,7 +6,7 @@ no_sessions = length(sessions);
 total_data = [];
 if ~isstruct(sessions)
     for nr_sess = 1: no_sessions    
-        total_data = [total_data(:); sessions{nr_sess}];
+        total_data = [total_data(:); sessions{nr_sess}(:)];
     end
 else
     fieldNames = fieldnames(sessions(1));

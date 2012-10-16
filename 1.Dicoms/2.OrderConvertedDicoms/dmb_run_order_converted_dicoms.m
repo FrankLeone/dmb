@@ -32,6 +32,7 @@ else
     range_echo_nr       = [4 5]; % meaning: echo nr is located between 4rd and 5th '-' in filename
     range_scan_nr       = [2 3]; % meaning: scan nr is located between 2rd and 5th '-' in filename
     range_type          = 1;
+    range_scanday       = [0 1];
     range_session_nr    = [1 2]; % meaning: session nr is located between 1st and 2nd '_' in filename
     curr_func_prefix    = 'f';
     curr_struc_prefix   = 's';
@@ -80,11 +81,13 @@ end
 echo_nrs                    = cellfun(@(x, a, b)x(a:b), filenames, num2cell(locs_underscores_minuses(:, range_echo_nr(1))+1), num2cell(locs_underscores_minuses(:, range_echo_nr(2))-1), 'UniformOutput', false);
 session_nrs                 = cellfun(@(x, a, b)x(a:b), filenames, num2cell(locs_underscores_minuses(:, range_session_nr(1))+1), num2cell(locs_underscores_minuses(:, range_session_nr(2))-1), 'UniformOutput', false);
 scan_nrs                    = cellfun(@(x, a, b)x(a:b), filenames, num2cell(locs_underscores_minuses(:, range_scan_nr(1))+1), num2cell(locs_underscores_minuses(:, range_scan_nr(2))-1), 'UniformOutput', false);
+day_nrs                     = cellfun(@(x, a, b)x(2:b), filenames, repmat({2}, size(filenames, 1), 1), num2cell(locs_underscores_minuses(:, range_scanday(2))-1), 'UniformOutput', false);
 u                           = repmat({'_'}, size(scan_nrs));
 b                           = repmat({base_filename}, size(scan_nrs));
 
 % Interpret echo_nrs
 [uniq_vals a echo_nrs_int]  = unique(echo_nrs);
+% assert(all(diff(echo_nrs_int(types == 'f')) >=0));
 
 % Interpret session_nrs
 session_nrs                 = cellfun(@(x) sscanf(char(x),['%f' 'DST' '%f']),session_nrs, 'UniformOutput', false); % splits session ID into 2 numbers (before and after 'DST') 
@@ -94,7 +97,20 @@ if ~ICED_filenames
     session_nrs                 = session_nrs - echo_nrs_int;
 end
 
-[uniq_vals a sess_nrs]      = unique(session_nrs(:,1)); % searches unique values within 1st column (i.e. 1st number) => SESSIONS ARE ORDERED CORRECTLY!!
+[uniqNrs tmp c] = unique(day_nrs);
+if length(uniqNrs) ~= 1    
+    assert(all(diff(c(types == 'f')) >=0));
+    lastPreviousDay = 0;
+    for nrDay = 1: length(uniqNrs)
+        session_nrs(c == nrDay) = session_nrs(c == nrDay) + lastPreviousDay;
+        lastPreviousDay = max(session_nrs(c==nrDay))+1;
+    end
+end
+
+% [uniq_vals a sess_nrs]      = unique(session_nrs);
+[uniq_vals a sess_nrs]      = unique(num2str(session_nrs), 'rows'); % searches unique values within 1st column (i.e. 1st number) => SESSIONS ARE ORDERED CORRECTLY!!
+% Check whether we aren't switching sessions.
+assert(all(diff(sess_nrs(types == 'f'))>=0))
 
 % Convert to strings
 session_nrs                 = num2cell(sess_nrs);
@@ -116,15 +132,18 @@ struc_sess_bools = types == curr_struc_prefix;
 func_sess_nrs = session_nrs(func_sess_bools);
 struc_type_nrs = session_nrs(struc_sess_bools);
 
+session_nrs_int = sess_nrs;
 if ~isempty(func_sess_nrs)
-    [func_vals a sess_nrs] = unique(str2num(char(func_sess_nrs))); % instead of 'unique(func_sess_nrs);' => SESSIONS ARE ORDERED CORRECTLY!!
+    [func_vals a sess_nrs] = unique(num2str(session_nrs_int(func_sess_bools)), 'rows'); % instead of 'unique(func_sess_nrs);' => SESSIONS ARE ORDERED CORRECTLY!!
+    assert(all(diff(sess_nrs)>=0));
     sess_dirs(func_sess_bools, 1) = strcat(repmat({sess_dir}, sum(func_sess_bools), 1), mat2cell(num2str(sess_nrs), ones(length(sess_nrs), 1), size(num2str(sess_nrs), 2)));
 else
     disp('No functional scans included');
 end
 
 if ~isempty(struc_type_nrs)
-    [struc_vals a type_nrs] = unique(struc_type_nrs);
+    [struc_vals a type_nrs] = unique(num2str(session_nrs_int(struc_sess_bools)), 'rows');
+    assert(all(diff(type_nrs)>=0));
     sess_dirs(struc_sess_bools, 1) = strcat(repmat({type_dir}, sum(struc_sess_bools), 1), mat2cell(num2str(type_nrs), ones(length(type_nrs), 1), size(num2str(type_nrs), 2)));
 end
 
@@ -159,7 +178,7 @@ new_filenames(struc_sess_bools, 1)               = strcat(types(struc_sess_bools
 old_filenames = strcat(dirs, seps, filenames);
 new_filenames = strcat(directories, seps, new_filenames, '.nii');
 
-%% Check whether should NOT be included
+%% Check whether sessions should NOT be included
 if ~isempty(to_be_removed_nrs)
     old_filenames(to_be_removed_nrs) = [];
     new_filenames(to_be_removed_nrs) = [];
@@ -182,11 +201,32 @@ tic
 if move
     for nr_file = 1: length(old_filenames)
         eval(['!mv ' old_filenames{nr_file} ' ' new_filenames{nr_file}]);
+%           movefile(old_filenames{nr_file}, new_filenames{nr_file});
     end
 else
-    for nr_file = 1: length(old_filenames)
-        eval(['!cp ' old_filenames{nr_file} ' ' new_filenames{nr_file}]);
+%     for nr_file = 1: length(old_filenames)
+%         eval(['!cp ' old_filenames{nr_file} ' ' new_filenames{nr_file}]);
+% %           copyfile(old_filenames{nr_file}, new_filenames{nr_file});
+%     end
+    noPerSubStack = 1000;           
+    addNumber = noPerSubStack - 1;
+    nrStack = 1;
+    filenameStack = cell(ceil(length(old_filenames)/noPerSubStack), 1);
+    for nrFile = 1:noPerSubStack:length(old_filenames)
+        if nrFile + addNumber < length(old_filenames)
+            fromStack = old_filenames(nrFile:(nrFile + addNumber));
+            toStack = new_filenames(nrFile:(nrFile + addNumber));
+        else
+            fromStack = old_filenames(nrFile:end);
+            toStack = new_filenames(nrFile:end);
+        end
+        filenameStack{nrStack}.from = fromStack;
+        filenameStack{nrStack}.to = toStack;
+        nrStack = nrStack + 1;
     end
+
+    result = qsubcellfun(@copy_many_files_distributedly, filenameStack, 'memreq', 1* 1024, 'timreq', 2 * 60, 'compile', 'yes');
+
 end    
 fprintf('... Ready\n\n');
 toc

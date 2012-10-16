@@ -1,8 +1,6 @@
 function dep = dmb_vout_check_spikes (job)
 
-for k=1: numel(job.files)
-    dep(k)            = cfg_dep;
-    dep(k).sname      =  ['Data sess' num2str(k)];
-    dep(k).src_output = substruct('()',{k}, '.','files');
-    dep(k).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-end
+dep            = cfg_dep;
+dep.sname      = 'Data all sessions';
+dep.src_output = substruct('.','data');
+dep.tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});

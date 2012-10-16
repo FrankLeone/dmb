@@ -284,12 +284,12 @@ for i = 1:size(slice_averages, 2)
 end
 h = figure(3); clf; subplot(2, 2, [1 2]); plot(norm_slc_avg); line((1:size(slice_averages, 1)), (1+flags.spike_threshold));
 v = axis; if v(4) < (1+flags.spike_threshold*1.5); v(4) = (1+flags.spike_threshold*1.5); end; axis(v);
-title(['Check spike results, mask: ' flags.mask_type ', ' flags.maskint.mode ', mode: ' flags.mode], 'Interpreter', 'none')
+title(['Check spike results, mask: ' flags.mask_type ', ' flags.maskint.mode ', mode:' flags.mode])
 
 varSliceAverages = var(slice_averages, [], 1);
 maxSliceAverages = max(slice_averages, [], 1);
-subplot(2, 2, 3); plot(varSliceAverages); xlabel('Slice number (normally: bottom to top)'); ylabel('Variance of mean in slice.'); title('How much the curve at the top ''wobbels'')');
-subplot(2, 2, 4); plot(maxSliceAverages); xlabel('Slice number (normally: bottom to top)'); ylabel('Maximum mean activity in slice.'); title('How high the curve at the top maximally is');
+subplot(2, 2, 2); plot(varSliceAverages); xlabel('Slice number (normally: bottom to top)'); ylabel('Variance of mean in slice (how much the curve at the top ''wobbels'')');
+subplot(2, 2, 4); plot(maxSliceAverages); xlabel('Slice number (normally: bottom to top)'); ylabel('Maximum mean activity in slice (how high the curve at the top maximally is');
 
 %==========================================================================
 

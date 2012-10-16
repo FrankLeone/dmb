@@ -1,13 +1,18 @@
-function out = cfg_donders_run_combine_echos (job)
+function out = dmb_run_combine_echoes (job)
 
 % Created by Pieter Buur, April 2008
 %
 % 20080421 - pre-allocated memory for data object
 %
 
-sessions      = job.files;
+%% Split sessions
+job.data = dmb_run_split_sessions_inline(job);
+expected_no_sessions = job.expected_n_sessions;
+
+%% Perform operation
+sessions      = job.data;
 if ~iscell(sessions)
-    sessions = {sessions};cs
+    sessions = {sessions};
 end
 
 INFO.me.combine_method     = job.combine_method;
@@ -16,6 +21,17 @@ INFO.me.pre_vols           = job.n_pre_vols;
 INFO.me.dir.PAIDweight     = job.dir_PAIDweight;
 INFO.me.actual_pre_vols     = job.pre_vols;
 
+if ~isempty(INFO.me.actual_pre_vols)
+    for nrSess = length(sessions):-1:1
+        nrsPrescans = cellfun(@(X)~isempty(X), strfind(sessions{nrSess}', job.pre_vols));
+        if sum(nrsPrescans) > 0
+            INFO.me.actual_pre_vols  = sessions{nrSess};
+            sessions(nrSess) = [];
+            expected_no_sessions = expected_no_sessions-1;
+        end
+    end
+end
+    
 if isempty(INFO.me.pre_vols) && ~isempty(INFO.me.actual_pre_vols)
     INFO.me.pre_vols = size(INFO.me.actual_pre_vols,1);
 end
@@ -178,7 +194,15 @@ for sess = 1: nosessions
       N.descrip = INFO.me.combine_method;
       create(N);
       N.dat(:,:,:) = reshape(src(:,vv),nii_info.dim);
-      out(sess).files{vv} = fname;
+      outSplit.sess{sess}{vv} = fname;
       if ~mod(vv/N.dat.dim(1)/N.dat.dim(2),N.dat.dim(3)), disp('combined slice %d of %d', vv/N.dat.dim(1)/N.dat.dim(2),N.dat.dim(3)); end
     end
 end % session loop
+
+%% Combine sessions again
+[out.data no_sessions] = dmb_run_combine_sessions_inline(outSplit);
+
+%% Check whether splitting and combing went alright
+assert(no_sessions == expected_no_sessions);
+
+
