@@ -225,9 +225,7 @@ if ~isempty(targetDir)
         
         for nrFile = 1: length(fromFiles)
             specificTargetDir = fileparts(toFiles{nrFile});
-            if ~exist(specificTargetDir, 'dir')
-                mkdir(specificTargetDir);
-            end
+            if ~exist(specificTargetDir, 
             movefile(fromFiles{nrFile}, toFiles{nrFile});
         end
         

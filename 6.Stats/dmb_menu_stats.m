@@ -1,4 +1,4 @@
-function dmb_menu_nuisance_regressors = dmb_menu_nuisance_regressors
+function dmb_menu_stats = dmb_menu_stats
 % DMB_MENU_NUISANCE_REGRESSORS - This files contains menu items to create nuisance regressors and is part of the Donders Matlab Batch
 %
 % Other m-files required: Donders Matlab Batch package
@@ -17,11 +17,11 @@ function dmb_menu_nuisance_regressors = dmb_menu_nuisance_regressors
 % - Fill the function
 %------------- BEGIN CODE --------------
 
-dmb_menu_nuisance_regressors             = cfg_repeat;
-dmb_menu_nuisance_regressors.name        = 'Nuisance regressors';
-dmb_menu_nuisance_regressors.tag         = 'nuisance_regressors';
-dmb_menu_nuisance_regressors.values      = {dmb_item_spm_new_segment dmb_item_spm_cfg_coreg dmb_item_segment_regressors dmb_item_transform_movement_regressors dmb_item_combine_nuisance_regressors};
-dmb_menu_nuisance_regressors.forcestruct = true;
-dmb_menu_nuisance_regressors.help        = {'Function to create nuisance regressors.'};
+dmb_menu_stats             = cfg_repeat;
+dmb_menu_stats.name        = 'Statistics';
+dmb_menu_stats.tag         = 'statistics';
+dmb_menu_stats.values      = {dmb_item_spm_cfg_fmri_spec};
+dmb_menu_stats.forcestruct = true;
+dmb_menu_stats.help        = {'Functions to do fMRI GLM stats'};
 
 %------------- END OF CODE --------------

@@ -1,11 +1,13 @@
-function [total_data no_sessions] = dmb_run_combine_sessions_inline(job)
+function [total_data no_sessions] = dmb_run_combine_sessions_inline(sessions)
 
-sessions = job.sess;
 no_sessions = length(sessions);
 
 total_data = [];
 if ~isstruct(sessions)
-    for nr_sess = 1: no_sessions    
+    for nr_sess = 1: no_sessions   
+        if isstr(sessions{nr_sess})
+            sessions{nr_sess} = {sessions{nr_sess}};
+        end        
         total_data = [total_data(:); sessions{nr_sess}(:)];
     end
 else

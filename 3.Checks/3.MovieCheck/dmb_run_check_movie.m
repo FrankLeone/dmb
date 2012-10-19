@@ -1,8 +1,8 @@
 function out = dmb_run_check_movie (job)
 
 %% Split sessions
-job.data = dmb_run_split_sessions_inline(job);
 expected_n_sessions = job.expected_n_sessions;
+job.data = dmb_run_split_sessions_inline(job.data, expected_n_sessions);
 
 %% Perform operation
 global defaults;
@@ -239,7 +239,7 @@ for sess = 1: nosessions
 end
 
 %% Combine sessions again
-[out.data no_sessions] = dmb_run_combine_sessions_inline(out);
+[out.data no_sessions] = dmb_run_combine_sessions_inline(job.data);
 
 %% Check whether splitting and combing went alright
 assert(no_sessions == expected_n_sessions);

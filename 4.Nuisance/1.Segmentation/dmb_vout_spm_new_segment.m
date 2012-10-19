@@ -63,4 +63,9 @@ if job.warp.write(2),
     cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end
 
+cdep(end+1) = cfg_dep;
+cdep(end).sname      = sprintf('All Images');
+cdep(end).src_output = substruct('.','tiss','()',{':'},'.','c','()',{':'});
+cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+
 dep = cdep;

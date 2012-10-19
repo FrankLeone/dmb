@@ -16,10 +16,10 @@ function dmb_item_spm_realign_estimate = dmb_item_spm_realign_estimate
 % August 2012; Last revision: 31-08-2012
 
 %------------- BEGIN CODE --------------
-dmb_item_spm_realign_estimate = spm_cfg_realign;
+dmb_item_spm_realign_estimate = dmb_spm_cfg_realign_estimate;
 
 % Only take the realign part
-dmb_item_spm_realign_estimate = dmb_item_spm_realign_estimate.values{1};
+% dmb_item_spm_realign_estimate = dmb_item_spm_realign_estimate.values{1};
 
 % And signify in the name that I link to the SPM function
 dmb_item_spm_realign_estimate.name = [dmb_item_spm_realign_estimate.name ' (SPM)'];

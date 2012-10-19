@@ -1,7 +1,8 @@
 function out = dmb_run_copy_realignment_pars (job)
 
 %% Split sessions
-job.data = dmb_run_split_sessions_inline(job);
+expected_n_sessions = job.expected_n_sessions;
+job.data = dmb_run_split_sessions_inline(job.data, expected_n_sessions);
 
 %% Apply operation
 sessions      = job.data;
@@ -54,7 +55,7 @@ for sess = 1: nosessions
 end
 
 %% Combine sessions again
-[out.data no_sessions] = dmb_run_combine_sessions_inline(outSplit);
+[out.data no_sessions] = dmb_run_combine_sessions_inline(outSplit.sess);
 
 %% And check whether splitting and combining sessions went alright
-assert (no_sessions == job.expected_n_sessions);
+assert (no_sessions == expected_n_sessions);

@@ -1,7 +1,7 @@
 function out = dmb_run_split_sessions(job)
 
 allFieldnames = fieldnames(job);
-if ismember(allFieldnames, 'data');
+if any(ismember(allFieldnames, 'data'));
     total_data = job.data;
 else
     total_data = job.files;
@@ -22,9 +22,15 @@ for nr_sep = 1: length(separators)
     end
 end
 
+%% Check whether we could just keep them in the old order
+if size(sess_nrs, 1) == numel(sessions)
+    sess_nrs = sess_nrs(sessions, :);
+    sessions = 1:numel(sessions);
+end
+
+%% Check whether I am not switching order of files!
 assert(all(diff(sessions)>=0));
-% sessions = sort(sessions);
-% warning('I made it order the session numbers, might influence other scripts!');
+
 for nr_sess = 1: size(sess_nrs, 1)
     out(nr_sess).data = total_data(sessions == nr_sess);
 end

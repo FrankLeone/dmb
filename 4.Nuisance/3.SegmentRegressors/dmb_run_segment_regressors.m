@@ -1,7 +1,12 @@
 function out = dmb_run_segment_regressors (job)
 
+%% Split sessions
+expected_n_sessions = job.expected_n_sessions;
+job.data = dmb_run_split_sessions_inline(job.data, expected_n_sessions);
+
+%% Assign values
 segment_files           = job.segment;
-all_data                = job.files;
+all_data                = job.data;
 out_paths               = job.directory;
 
 %% Used to split up set to make sure no memory problems occur
@@ -72,3 +77,11 @@ for nr_data = 1: length(all_data)
 
     clear data;
 end
+
+%% Combine sessions again
+[combinedAveragedIntensity no_sessions] = dmb_run_combine_sessions_inline([out.average_intensity]');
+clear out;
+out.average_intensity = combinedAveragedIntensity;
+
+%% Check whether splitting and combing went alright
+assert(no_sessions == expected_n_sessions);

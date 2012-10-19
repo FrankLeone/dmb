@@ -1,7 +1,4 @@
-function out = dmb_run_split_sessions_inline(job)
-
-total_data = job.data;
-no_sessions = job.expected_n_sessions;
+function out = dmb_run_split_sessions_inline(total_data, no_sessions)
 
 filenames = fileCells2Mat(total_data);
 
@@ -15,6 +12,11 @@ for nr_sep = 1: length(separators)
     if size(sess_nrs, 1) == no_sessions
         break;
     end
+end
+
+if size(sess_nrs, 1) == numel(sessions)
+    sess_nrs = sess_nrs(sessions, :);
+    sessions = 1: numel(sessions);    
 end
 
 assert(all(diff(sessions)>=0));

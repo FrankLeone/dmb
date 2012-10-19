@@ -1,7 +1,8 @@
 function out = dmb_spm_run_realign_estimate(job)
 
 %% Split sessions
-job.data = dmb_run_split_sessions_inline(job);
+expected_n_sessions = job.expected_n_sessions;
+job.data = dmb_run_split_sessions_inline(job.data, expected_n_sessions);
 
 %% Call original function
 outSplit = spm_run_realign_estimate(job);
@@ -23,8 +24,9 @@ if ~isempty(job.targetDir)
     end
 end
 %% Combine sessions again
-[out no_sessions] = dmb_run_combine_sessions_inline(outSplit);
+[out.rpfile no_sessions] = dmb_run_combine_sessions_inline([outSplit.sess.rpfile]);
+[out.cfiles no_sessions] = dmb_run_combine_sessions_inline({outSplit.sess.cfiles});
 
 
 %% Check whether same number of sessions came in and out
-assert (no_sessions == job.expected_n_sessions);
+assert (no_sessions == expected_n_sessions);
