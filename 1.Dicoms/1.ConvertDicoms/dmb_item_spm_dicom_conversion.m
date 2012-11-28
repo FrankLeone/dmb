@@ -16,7 +16,7 @@ function dmb_item_spm_dicom_conversion = dmb_item_spm_dicom_conversion
 % August 2012; Last revision: 31-08-2012
 
 %------------- BEGIN CODE --------------
-dmb_item_spm_dicom_conversion = spm_cfg_dicom;
+dmb_item_spm_dicom_conversion = dmb_item_spm_cfg_dicom;
 
 % Signify in name that it is a call to an SPM function
 dmb_item_spm_dicom_conversion.name = [dmb_item_spm_dicom_conversion.name ' (SPM)'];

@@ -200,46 +200,17 @@ for sess = 1: nosessions
 end % session loop
 
 %% Move combined scans to new directory
-targetDir = job.targetDir{1};
-filenames = outSplit.sess;
-
-if ~isempty(targetDir)
-    if ~exist(targetDir, 'dir');
-        mkdir(targetDir);
-    end
-    for nrSess = 1: length(filenames)
-        filesOneSess = filenames{nrSess};
-        exampleFile = [filesOneSess{1} filesep];
-        fileSepsFrom = find(exampleFile == filesep);
-        fileSepsTo = find(targetDir == filesep);
-        for nrFileSep = 1: length(fileSepsFrom)
-            
-            if ~strcmp(targetDir(1:fileSepsTo(nrFileSep)),exampleFile(1:fileSepsFrom(nrFileSep)))
-                fromString = exampleFile((fileSepsFrom(nrFileSep-1)+1) : (fileSepsFrom(nrFileSep)-1));
-                toString = targetDir((fileSepsTo(nrFileSep-1)+1) : (fileSepsTo(nrFileSep)-1));
-                break
-            end
-        end
-        fromFiles = filesOneSess;
-        toFiles = cellfun(@strrep, filesOneSess, repmat({fromString}, size(filesOneSess)), repmat({toString}, size(filesOneSess)), 'UniformOutput', false);
-        
-        for nrFile = 1: length(fromFiles)
-            specificTargetDir = fileparts(toFiles{nrFile});
-            if ~exist(specificTargetDir, 'dir')
-                mkdir(specificTargetDir);
-            end
-            movefile(fromFiles{nrFile}, toFiles{nrFile});
-        end
-        
-        outSplit.sess{nrSess} = toFiles;
-    end
-end
-       
+if ~isempty(job.targetDir)
+    outSplit.sess = copy_files_to_relative_directory(outSplit.sess, job.targetDir{1});
+end       
 
 %% Combine sessions again
 [out.data no_sessions] = dmb_run_combine_sessions_inline(outSplit.sess);
 
 %% Check whether splitting and combing went alright
 assert(no_sessions == expected_no_sessions);
+
+%% Update the number of sessions: it is now one less
+out.no_sessions = no_sessions;
 
 

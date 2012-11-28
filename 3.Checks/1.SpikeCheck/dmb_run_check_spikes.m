@@ -27,7 +27,7 @@ job.data = dmb_run_split_sessions_inline(job.data, expected_n_sessions);
 %% Perform operation
 multiecho   = job.multiecho;
 output_dirs  = job.output_dir;
-subject     = job.subject;
+subject     = ''; % job.subject;
 cfg.mode    = job.mode;
 flags.mode  = cfg.mode;
 
@@ -92,7 +92,8 @@ end
 disp (['I''m being called in run mode: '  flags.mode  ] );
 
 spm('CreateIntWin');
-for sess = 1: nosessions
+for sess = 1: nosessions    
+    
     files = sessions{sess};
     out.sess{sess} = files;
     output_dir = output_dirs{sess};
@@ -104,39 +105,44 @@ for sess = 1: nosessions
     for echo = 1: nechoes
         imgs = files{echo};
         
-        if iscell(imgs)
-            max_length = max(cellfun(@length, imgs));
-            imgs = cell2mat(cellfun(@(x, max_length)[x repmat(' ', 1, max_length - length(x))], imgs, repmat({max_length}, size(imgs)), 'UniformOutput', false));
-        end
+        if ~exist(fullfile(output_dir,['check_spike_' [subject, '_' num2str(sess)], '_', [num2str(echo)] '.jpg']), 'file')
         
-        V = spm_vol(imgs);
+            if iscell(imgs)
+                max_length = max(cellfun(@length, imgs));
+                imgs = cell2mat(cellfun(@(x, max_length)[x repmat(' ', 1, max_length - length(x))], imgs, repmat({max_length}, size(imgs)), 'UniformOutput', false));
+            end
 
-        %create and save mask
-        [mask, noise] = getmask(V, flags);
-        save_mask(mask,V,flags);
+            V = spm_vol(imgs);
 
-        % determine timecourse slice averages
-        flags.runmode = ('check');
-        [slice_averages, new_imgs_headers] = slcavg_dupl(V, mask, noise, flags);
+            %create and save mask
+            [mask, noise] = getmask(V, flags);
+            save_mask(mask,V,flags);
 
-        % detect spikes
-        [affected_vol_slc, affected_vol] = detect_spikes (slice_averages, flags);
-        save_spikefile(affected_vol_slc,affected_vol,V,flags);
-
-        h = show_save_slice_avg(slice_averages, V, flags);
-        figname = fullfile(output_dir,['check_spike_' [subject, '_' num2str(sess)], '_', [num2str(echo)] '.jpg']);
-
-        saveas(h, figname,'jpg');
-
-        % if spikes have been detected and we were in 'check' mode before: recall with remove flag
-        if ( length(find(affected_vol_slc ~= 0))>0  && strcmp('remove', flags.mode) == 1 )
-            fprintf('\n\nFOUND SPIKES!\n\n');
-            flags.runmode = ('remove');
-            flags.affected.vol = affected_vol;
-            flags.affected.slc = affected_vol_slc;
+            % determine timecourse slice averages
+            flags.runmode = ('check');
             [slice_averages, new_imgs_headers] = slcavg_dupl(V, mask, noise, flags);
-            %remove spikes
-            remove_spikes(affected_vol_slc, new_imgs_headers);
+
+            % detect spikes
+            [affected_vol_slc, affected_vol] = detect_spikes (slice_averages, flags);
+            save_spikefile(affected_vol_slc,affected_vol,V,flags);
+
+            h = show_save_slice_avg(slice_averages, V, flags);
+            figname = fullfile(output_dir,['check_spike_' [subject, '_' num2str(sess)], '_', [num2str(echo)] '.jpg']);
+
+            saveas(h, figname,'jpg');
+
+            % if spikes have been detected and we were in 'check' mode before: recall with remove flag
+            if ( length(find(affected_vol_slc ~= 0))>0  && strcmp('remove', flags.mode) == 1 )
+                fprintf('\n\nFOUND SPIKES!\n\n');
+                flags.runmode = ('remove');
+                flags.affected.vol = affected_vol;
+                flags.affected.slc = affected_vol_slc;
+                [slice_averages, new_imgs_headers] = slcavg_dupl(V, mask, noise, flags);
+                %remove spikes
+                remove_spikes(affected_vol_slc, new_imgs_headers);
+            end
+        else
+            display([fullfile(output_dir,['check_spike_' [subject, '_' num2str(sess)], '_', [num2str(echo)] '.jpg']) ' already exists, skipping...']);
         end
     end
 end
@@ -256,14 +262,14 @@ for volume = 1:size(imgs_headers,1)
 
     %duplicate volume IF we are in remove mode
     if (strcmp('remove', flags.runmode) == 1) && flags.affected.vol(volume)
-        new_imgs_headers{volume}.descrip = strcat(imgs_headers{volume}.descrip,' - un-spiked');
+        new_imgs_headers(volume).descrip = strcat(imgs_headers(volume).descrip,' - un-spiked');
         if isempty(flags.file_prefix_addon)
-            movefile(imgs_headers{volume}.fname,output_dir);
-            new_imgs_headers{volume}.fname = imgs_headers{volume}.fname;
+            movefile(imgs_headers(volume).fname,flags.output_dir);
+            new_imgs_headers(volume).fname = imgs_headers(volume).fname;
         else
-            new_imgs_headers{volume}.fname = prepend(imgs_headers{volume}.fname, flags.file_prefix_addon);
+            new_imgs_headers(volume).fname = prepend(imgs_headers(volume).fname, flags.file_prefix_addon);
         end
-        spm_write_vol(new_imgs_headers{volume}, image);
+        spm_write_vol(new_imgs_headers(volume), image);
     end
 
     spm_progress_bar('Set',volume);
@@ -358,7 +364,7 @@ for volume = 2:size(affected_vol_slc, 1)-1
             if ~exist (fullfile(old_dir, 'spike_backup'), 'dir')
                 mkdir(fullfile(old_dir, 'spike_backup'))
             end
-            eval(['!cp ' new_imgs_headers(volume).fname ' ' fullfile(old_dir, 'spike_backup')]);
+            eval(['!cp ' new_imgs_headers(volume).fname ' ' fullfile(old_dir, 'spike_backup', ['backup_' new_imgs_headers(volume).fname])]);
             
              % Make backup of old file
              spm_write_plane(new_imgs_headers(volume),current_vol(:,:,slice), slice);

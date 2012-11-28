@@ -24,7 +24,7 @@ function dmb_cfg = dmb_cfg
 dmb_cfg             = cfg_repeat;
 dmb_cfg.name        = 'DMB';
 dmb_cfg.tag         = 'dmb';
-dmb_cfg.values      = {dmb_menu_dicom_conversion, dmb_menu_combine_echoes, dmb_menu_check_data, dmb_menu_nuisance_regressors, dmb_menu_data_preproc, dmb_menu_stats};
+dmb_cfg.values      = {dmb_menu_basics, dmb_menu_dicom_conversion, dmb_menu_combine_echoes, dmb_menu_check_data, dmb_menu_nuisance_regressors, dmb_menu_data_preproc, dmb_menu_stats, dmb_menu_batch};
 dmb_cfg.forcestruct = true;
 dmb_cfg.help        = {'The Donders Matlab Batch, which extend the standard SPM Matlab batch with functions of particular interest to members of the Donders Institute for Brain, Cognition and Behavior. Made by Frank Leone, please send questions and comments to f.leone@donders.ru.nl'};
 

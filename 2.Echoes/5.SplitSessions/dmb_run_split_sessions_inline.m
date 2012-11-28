@@ -24,3 +24,5 @@ assert(all(diff(sessions)>=0));
 for nr_sess = 1: size(sess_nrs, 1)
     out{nr_sess} = total_data(sessions == nr_sess);
 end
+
+fprintf('Succesfully splitted data into %d sessions\n', no_sessions);

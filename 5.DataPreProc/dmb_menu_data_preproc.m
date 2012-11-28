@@ -20,7 +20,7 @@ function dmb_menu_data_preproc = dmb_menu_data_preproc
 dmb_menu_data_preproc             = cfg_repeat;
 dmb_menu_data_preproc.name        = 'Data preprocessing';
 dmb_menu_data_preproc.tag         = 'data_preprocessing';
-dmb_menu_data_preproc.values      = {dmb_spm_cfg_st, spm_cfg_smooth};
+dmb_menu_data_preproc.values      = {dmb_spm_cfg_st, dmb_item_spm_cfg_smooth};
 dmb_menu_data_preproc.forcestruct = true;
 dmb_menu_data_preproc.help        = {'Function to create nuisance regressors.'};
 

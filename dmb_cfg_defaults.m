@@ -41,4 +41,6 @@ dmb_defaults.combine_echoes.nechoes            = 5;
 dmb_defaults.combine_regressors.filename_regr = 'nuisanceRegressors';
 
 dmb_defaults.segment.oob =  [1 0];
+
+dmb_defaults.multiecho             = 1;
 %------------- END OF CODE --------------

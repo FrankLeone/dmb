@@ -78,26 +78,26 @@ dir_PAIDweight.def      = @(val)dmb_cfg_get_defaults('combine_echoes.dir_PAIDwei
 % ---------------------------------------------------------------------
 targetDir         = cfg_files;
 targetDir.tag     = 'targetDir';
-targetDir.name    = 'Target Dir movement parameters';
-targetDir.help    = {'Select scans for this session. In the coregistration step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'};
+targetDir.name    = 'Target directory combined files';
+targetDir.help    = {'Where do you want to move the combined files to, if anywhere?'};
 targetDir.filter = 'dir';
 targetDir.ufilter = '.*';
 targetDir.num     = [0 1];
-
-% ---------------------------------------------------------------------
-% wrap Wrapping
-% ---------------------------------------------------------------------
-relativeDir         = cfg_menu;
-relativeDir.tag     = 'relativeDir';
-relativeDir.name    = 'Retain separate session dirs?';
-relativeDir.help    = {
-                
-}';
-relativeDir.labels = {
-               'Move all to one folder'
-               'Retain session directories'
-}';
-relativeDir.values = {false, true};
+% 
+% % ---------------------------------------------------------------------
+% % wrap Wrapping
+% % ---------------------------------------------------------------------
+% relativeDir         = cfg_menu;
+% relativeDir.tag     = 'relativeDir';
+% relativeDir.name    = 'Retain separate session dirs?';
+% relativeDir.help    = {
+%                 
+% }';
+% relativeDir.labels = {
+%                'Move all to one folder'
+%                'Retain session directories'
+% }';
+% relativeDir.values = {false, true};
 
 % ---------------------------------------------------------------------
 % expected_n_sessions Number of sessions to be expected
@@ -116,7 +116,7 @@ expected_n_sessions.def     = @(val)dmb_cfg_get_defaults('order_niis.expected_n_
 dmb_menu_combine_echoes           = cfg_exbranch;
 dmb_menu_combine_echoes.tag       = 'cfg_combine_echos';
 dmb_menu_combine_echoes.name      = 'Combine echoes';
-dmb_menu_combine_echoes.val       = {data combine_method echo_times pre_vols n_pre_vols dir_PAIDweight, expected_n_sessions, targetDir, relativeDir};
+dmb_menu_combine_echoes.val       = {data combine_method echo_times pre_vols n_pre_vols dir_PAIDweight, expected_n_sessions, targetDir};
 dmb_menu_combine_echoes.help      = {'Combines multiple echos into single scans.'};
 dmb_menu_combine_echoes.prog      = @dmb_run_combine_echoes;
 dmb_menu_combine_echoes.vout      = @dmb_vout_combine_echoes;

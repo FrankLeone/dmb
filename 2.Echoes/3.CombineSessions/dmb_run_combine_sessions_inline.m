@@ -21,3 +21,5 @@ else
         end
     end 
 end 
+
+fprintf('Succesfully combined %d sessions again.\n', no_sessions);

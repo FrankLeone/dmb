@@ -30,7 +30,7 @@ spm_defaults;
 multiecho   = job.multiecho;
 output_dirs  = job.output_dir
 
-subject     = job.subject;
+subject     = ''; %job.subject;
 
 % if (strcmp(job.files{1}{1}([end-1 end]), ',1'))
 %     sessions      = cellfun(@(x)x(1:(end-2)), job.files, 'UniformOutput', false);
@@ -62,34 +62,38 @@ for sess = 1: nosessions
     for echo = 1: nechoes
         imgs = files{echo};
         
-        if iscell(imgs)
-            max_length = max(cellfun(@length, imgs));
-            imgs = cell2mat(cellfun(@(x, max_length)[x repmat(' ', 1, max_length - length(x))], imgs, repmat({max_length}, size(imgs)), 'UniformOutput', false));
+        if ~exist(fullfile(signal_dir,sprintf('CheckSignal_%s%s%s.jpg', [subject '_' num2str(sess)], '_', [num2str(echo)])), 'file')
+            if iscell(imgs)
+                max_length = max(cellfun(@length, imgs));
+                imgs = cell2mat(cellfun(@(x, max_length)[x repmat(' ', 1, max_length - length(x))], imgs, repmat({max_length}, size(imgs)), 'UniformOutput', false));
+            end
+            if isempty(imgs)
+                warning('BATCH_SPM5:FilesNotFound','No files that pass the image filter (%s) have been found.',filter_img);
+            end
+
+            [slicesig,globalsig] = calc_sig(imgs);
+
+            save(fullfile(signal_dir,['CheckSignal', '_', [subject '_' num2str(sess)], '_', [num2str(echo) '.mat']]),'*sig');
+
+            h = figure('Name',['CheckSignal_' subject '_' num2str(sess) '_' [num2str(echo)]],'NumberTitle','off');
+            set(h,'Color','w');
+            subplot(2,2,1); plot(slicesig);
+            title_str = ['Stab check: ',subject ' ' num2str(sess) ' ' [num2str(echo)]];
+
+            title(['Slice Sig ' title_str]);
+            subplot(2,2,3); plot(var(slicesig));
+            title('Variance:');
+            subplot(2,2,2); plot(globalsig);
+            title(['Glob Sig ' title_str]);
+            subplot(2,2,4); bar(var(globalsig));
+            title('Variance:');
+
+            figname = fullfile(signal_dir,sprintf('CheckSignal_%s%s%s.jpg', [subject '_' num2str(sess)], '_', [num2str(echo)]));
+            saveas(h, figname,'jpg');
+            close(h);        
+        else
+            display([fullfile(signal_dir,sprintf('CheckSignal_%s%s%s.jpg', [subject '_' num2str(sess)], '_', [num2str(echo)])) ' already exists, skipping...']);
         end
-        if isempty(imgs)
-            warning('BATCH_SPM5:FilesNotFound','No files that pass the image filter (%s) have been found.',filter_img);
-        end
-                
-        [slicesig,globalsig] = calc_sig(imgs);
-
-        save(fullfile(signal_dir,['CheckSignal', '_', [subject '_' num2str(sess)], '_', [num2str(echo) '.mat']]),'*sig');
-        
-        h = figure('Name',['CheckSignal_' subject '_' num2str(sess) '_' [num2str(echo)]],'NumberTitle','off');
-        set(h,'Color','w');
-        subplot(2,2,1); plot(slicesig);
-        title_str = ['Stab check: ',subject ' ' num2str(sess) ' ' [num2str(echo)]];
-
-        title(['Slice Sig ' title_str]);
-        subplot(2,2,3); plot(var(slicesig));
-        title('Variance:');
-        subplot(2,2,2); plot(globalsig);
-        title(['Glob Sig ' title_str]);
-        subplot(2,2,4); bar(var(globalsig));
-        title('Variance:');
-
-        figname = fullfile(signal_dir,sprintf('CheckSignal_%s%s%s.jpg', [subject '_' num2str(sess)], '_', [num2str(echo)]));
-        saveas(h, figname,'jpg');
-        close(h);        
     end
     
 end

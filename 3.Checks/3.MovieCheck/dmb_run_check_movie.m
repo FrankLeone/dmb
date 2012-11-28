@@ -13,8 +13,8 @@ spm_defaults;
 
 multiecho   = job.multiecho;
 output_dirs  = job.output_dir;
-subject     = job.subject;
-
+% subject     = job.subject;
+subject = ''; 
 % if (strcmp(job.files{1}{1}([end-1 end]), ',1'))
 %     sessions      = cellfun(@(x)x(1:(end-2)), job.files, 'UniformOutput', false);
 % else
@@ -65,176 +65,180 @@ for sess = 1: nosessions
     for echo = 1: nechoes
         imgs = files{echo};
 
-        mov_default_name = fullfile(output_dir,  'default', '_', [subject, '_'  num2str(sess)], '_', [num2str(echo)]);
-        mov_contrast_name = fullfile(output_dir,  'contrast', '_', [subject, '_'  num2str(sess)], '_', [num2str(echo)]);
+        mov_default_name = fullfile(output_dir, sprintf('CheckMosaicMovie_%s%s%s_default.avi',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
+        mov_contrast_name = fullfile(output_dir, sprintf('CheckMosaicMovie_%s%s%s_contrast.avi',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
 
-        n = length(imgs);
-        m = INFO.check.movie.nr_imgs;
-        i_on = 1;
-        i_off = n;
-        if n>m
-            i_off = [];
-            c = ceil(n/m);
-            for d = 1:c-1
-                i_on = [i_on floor(d*n/c)+1];
-                i_off = [i_off floor(d*n/c)];
-            end
-            i_off = [i_off n];
-        end
-
-        for j = 1:length(i_on)
-
-            fprintf('\n\tLoading images (part %i/%i)...',j,length(i_on));
-            vols = spm_vol(imgs(i_on(j):i_off(j)));
-            if ~isstruct(vols(1))
-                for i = 1:length(vols)
-                    tvols(i) = vols{i};
+        if ~exist([mov_default_name], 'file')
+            n = length(imgs);
+            m = INFO.check.movie.nr_imgs;
+            i_on = 1;
+            i_off = n;
+            if n>m
+                i_off = [];
+                c = ceil(n/m);
+                for d = 1:c-1
+                    i_on = [i_on floor(d*n/c)+1];
+                    i_off = [i_off floor(d*n/c)];
                 end
-                vols = tvols;
+                i_off = [i_off n];
             end
-            data = spm_read_vols_1by1(vols);
-            fprintf('\tdone');
 
-            clear vols;
-            clear tvols;
+            for j = 1:length(i_on)
 
-            [dimx,dimy,nrslice,nrvols] = size(data);
+                fprintf('\n\tLoading images (part %i/%i)...',j,length(i_on));
+                vols = spm_vol(imgs(i_on(j):i_off(j)));
+                if ~isstruct(vols(1))
+                    for i = 1:length(vols)
+                        tvols(i) = vols{i};
+                    end
+                    vols = tvols;
+                end
+                data = spm_read_vols_1by1(vols);
+                fprintf('\tdone');
 
-            mosaic_format   = ceil(sqrt(nrslice)); % nr of slices in each direction
-            mosaic_x        = mosaic_format * dimx;
-            mosaic_y        = mosaic_format * dimy; % size in pixels
-            mosaic          = zeros(mosaic_x, mosaic_y, nrvols);
+                clear vols;
+                clear tvols;
 
-            text_x          = round(mosaic_x - dimx/4);
-            text_y          = round(mosaic_y - dimy/2);
+                [dimx,dimy,nrslice,nrvols] = size(data);
 
-            flip = spm_flip_analyze_images; % defaults.analyze.flip doesn't exist anymore!;
-            ori = 'hor';
+                mosaic_format   = ceil(sqrt(nrslice)); % nr of slices in each direction
+                mosaic_x        = mosaic_format * dimx;
+                mosaic_y        = mosaic_format * dimy; % size in pixels
+                mosaic          = zeros(mosaic_x, mosaic_y, nrvols);
 
-            for vol = 1:nrvols
-                for slice = 1:nrslice
+                text_x          = round(mosaic_x - dimx/4);
+                text_y          = round(mosaic_y - dimy/2);
 
-                    xmin = mod(slice - 1, mosaic_format) * dimx + 1;
-                    xmax = xmin + dimx - 1;
-                    ymin = (ceil(slice/mosaic_format)-1) * dimy + 1;
-                    ymax = ymin + dimy - 1;
+                flip = spm_flip_analyze_images; % defaults.analyze.flip doesn't exist anymore!;
+                ori = 'hor';
 
-                    slice_data = reshape(data(:,:,slice,vol), dimx, dimy);
-                    slice_data = rot90(slice_data);
+                for vol = 1:nrvols
+                    for slice = 1:nrslice
 
-                    if strcmp(ori, 'vert')
-                        if flip, mosaic(xmin:xmax, ymax:-1:ymin, vol) = slice_data;
-                        else     mosaic(xmin:xmax, ymin:ymax, vol)    = slice_data;
-                        end
-                    elseif strcmp(ori, 'hor')
-                        if flip, mosaic(ymin:ymax, xmax:-1:xmin, vol) = slice_data;
-                        else     mosaic(ymin:ymax, xmin:xmax, vol)    = slice_data;
+                        xmin = mod(slice - 1, mosaic_format) * dimx + 1;
+                        xmax = xmin + dimx - 1;
+                        ymin = (ceil(slice/mosaic_format)-1) * dimy + 1;
+                        ymax = ymin + dimy - 1;
+
+                        slice_data = reshape(data(:,:,slice,vol), dimx, dimy);
+                        slice_data = rot90(slice_data);
+
+                        if strcmp(ori, 'vert')
+                            if flip, mosaic(xmin:xmax, ymax:-1:ymin, vol) = slice_data;
+                            else     mosaic(xmin:xmax, ymin:ymax, vol)    = slice_data;
+                            end
+                        elseif strcmp(ori, 'hor')
+                            if flip, mosaic(ymin:ymax, xmax:-1:xmin, vol) = slice_data;
+                            else     mosaic(ymin:ymax, xmin:xmax, vol)    = slice_data;
+                            end
                         end
                     end
                 end
-            end
-            clear data;
-            
-            h = figure('NumberTitle','off');
-            imagesc(mosaic(:,:,1));
-            colormap(gray);
-            axis tight
-            set(gca,'nextplot','replacechildren');
-            
-            do_default = 0; do_contrast = 0;
-            if strcmpi(cfg.which,'both') || strcmpi(cfg.which,'default')
-                mov_default_name = fullfile(output_dir, sprintf('CheckMosaicMovie_%s%s%s_default.avi',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
-                do_default = 1;
-            end
-            if strcmpi(cfg.which,'both') || strcmpi(cfg.which,'contrast') && ...
-                    cfg.contrast ~= 0 && cfg.bright ~= 0
-                mov_contrast_name = fullfile(output_dir, sprintf('CheckMosaicMovie_%s%s%s_contrast.avi',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
-                do_contrast = 1;
-            end
-            
-            if cfg.save_temp
-                temp_default_file = fullfile(output_dir, sprintf('TempCheckMosaicMovie_%s%s%s_default.mat',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
-                temp_contrast_file = fullfile(output_dir, sprintf('TempCheckMosaicMovie_%s%s%s_contrast.mat',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
+                clear data;
+
+                h = figure('NumberTitle','off');
+                imagesc(mosaic(:,:,1));
+                colormap(gray);
+                axis tight
+                set(gca,'nextplot','replacechildren');
+
+                do_default = 0; do_contrast = 0;
+                if strcmpi(cfg.which,'both') || strcmpi(cfg.which,'default')
+                    mov_default_name = fullfile(output_dir, sprintf('CheckMosaicMovie_%s%s%s_default.avi',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
+                    do_default = 1;
+                end
+                if strcmpi(cfg.which,'both') || strcmpi(cfg.which,'contrast') && ...
+                        cfg.contrast ~= 0 && cfg.bright ~= 0
+                    mov_contrast_name = fullfile(output_dir, sprintf('CheckMosaicMovie_%s%s%s_contrast.avi',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
+                    do_contrast = 1;
+                end
+
+                if cfg.save_temp
+                    temp_default_file = fullfile(output_dir, sprintf('TempCheckMosaicMovie_%s%s%s_default.mat',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
+                    temp_contrast_file = fullfile(output_dir, sprintf('TempCheckMosaicMovie_%s%s%s_contrast.mat',[subject, '_', num2str(sess)], '_', [num2str(echo)]));
+                end
+
+                if do_default
+                    % Add the frames to the movie - default
+                    fprintf('\n\t\tCreating default...');
+                    if cfg.save_temp && j>1; load(temp_default_file); end;
+                    for i = 1:size(mosaic,3)
+                        idx = i_on(j)+i-1;
+                        imagesc(mosaic(:,:,i));
+                        hold on;
+                        if mosaic(text_x,text_y,i) < mean(mean(mosaic(:,:,i)))
+                            text(text_x,text_y,num2str(idx),'Color','w','FontSize',24,'HorizontalAlignment','right');
+                        else
+                            text(text_x,text_y,num2str(idx),'Color','k','FontSize',24,'HorizontalAlignment','right');
+                        end
+                        hold off;
+                        mov_default(idx) = getframe;
+                    end
+                    if cfg.save_temp; save(temp_default_file,'mov_default'); clear mov_default; end;
+                    fprintf('\tdone');
+                end
+
+                if do_contrast
+                    % Add the frames to the movie - contrast
+                    fprintf('\n\t\tCreating contrast...');
+                    if cfg.save_temp && j>1; load(temp_contrast_file); end;
+                    for i = 1:size(mosaic,3)
+                        img = mosaic(:,:,i)-min(min(mosaic(:, :, i)));
+                        img = ((img./max(img(:))).*100);
+                        cmin = min(min(img));
+                        cmax = max(max(img));
+                        cmean = mean([cmin cmax]);
+
+                        if contrast >= 0
+                            win = (1-contrast)*(cmax - cmean);
+                        else
+                            win = (cmax - cmean)/(1+contrast);
+                        end
+                        lev = cmean + -bright*(cmax+win-cmean);
+                        clims = [lev-win lev+win];
+
+                        idx = i_on(j)+i-1;
+                        imagesc(img,clims);
+                        hold on;
+                        if mosaic(text_x,text_y,i) < lev
+                            text(text_x,text_y,num2str(idx),'Color','w','FontSize',24,'HorizontalAlignment','right');
+                        else
+                            text(text_x,text_y,num2str(idx),'Color','k','FontSize',24,'HorizontalAlignment','right');
+                        end
+                        hold off;
+                        mov_contrast(idx) = getframe;
+                    end
+                    if cfg.save_temp; save(temp_contrast_file,'mov_contrast'); clear mov_contrast; end;
+                    fprintf('\tdone');
+                end
+
+                clear mosaic;
+
             end
 
             if do_default
-                % Add the frames to the movie - default
-                fprintf('\n\t\tCreating default...');
-                if cfg.save_temp && j>1; load(temp_default_file); end;
-                for i = 1:size(mosaic,3)
-                    idx = i_on(j)+i-1;
-                    imagesc(mosaic(:,:,i));
-                    hold on;
-                    if mosaic(text_x,text_y,i) < mean(mean(mosaic(:,:,i)))
-                        text(text_x,text_y,num2str(idx),'Color','w','FontSize',24,'HorizontalAlignment','right');
-                    else
-                        text(text_x,text_y,num2str(idx),'Color','k','FontSize',24,'HorizontalAlignment','right');
-                    end
-                    hold off;
-                    mov_default(idx) = getframe;
-                end
-                if cfg.save_temp; save(temp_default_file,'mov_default'); clear mov_default; end;
+                fprintf('\n\tSaving movie - default...');
+                if cfg.save_temp; load(temp_default_file); end;
+                %movie(mov_default,1,fps)  % Play the default movie one time
+                movie2avi(mov_default,mov_default_name,'fps',INFO.check.movie.fps);
+                if cfg.save_temp; delete(temp_default_file); end;
+                clear mov_default;
                 fprintf('\tdone');
             end
 
             if do_contrast
-                % Add the frames to the movie - contrast
-                fprintf('\n\t\tCreating contrast...');
-                if cfg.save_temp && j>1; load(temp_contrast_file); end;
-                for i = 1:size(mosaic,3)
-                    img = mosaic(:,:,i)-min(min(mosaic(:, :, i)));
-                    img = ((img./max(img(:))).*100);
-                    cmin = min(min(img));
-                    cmax = max(max(img));
-                    cmean = mean([cmin cmax]);
-
-                    if contrast >= 0
-                        win = (1-contrast)*(cmax - cmean);
-                    else
-                        win = (cmax - cmean)/(1+contrast);
-                    end
-                    lev = cmean + -bright*(cmax+win-cmean);
-                    clims = [lev-win lev+win];
-
-                    idx = i_on(j)+i-1;
-                    imagesc(img,clims);
-                    hold on;
-                    if mosaic(text_x,text_y,i) < lev
-                        text(text_x,text_y,num2str(idx),'Color','w','FontSize',24,'HorizontalAlignment','right');
-                    else
-                        text(text_x,text_y,num2str(idx),'Color','k','FontSize',24,'HorizontalAlignment','right');
-                    end
-                    hold off;
-                    mov_contrast(idx) = getframe;
-                end
-                if cfg.save_temp; save(temp_contrast_file,'mov_contrast'); clear mov_contrast; end;
+                fprintf('\n\tSaving movie - contrast...');
+                if cfg.save_temp; load(temp_contrast_file); end;
+                %movie(mov_contrast,1,fps)  % Play the contrast movie one time
+                movie2avi(mov_contrast,mov_contrast_name,'fps',INFO.check.movie.fps);
+                if cfg.save_temp; delete(temp_contrast_file); end;
+                clear mov_contrast;
                 fprintf('\tdone');
             end
-
-            clear mosaic;
-
+            close gcf;
+        else
+            display([mov_default_name ' already exists, skipping ...']);
         end
-
-        if do_default
-            fprintf('\n\tSaving movie - default...');
-            if cfg.save_temp; load(temp_default_file); end;
-            %movie(mov_default,1,fps)  % Play the default movie one time
-            movie2avi(mov_default,mov_default_name,'fps',INFO.check.movie.fps);
-            if cfg.save_temp; delete(temp_default_file); end;
-            clear mov_default;
-            fprintf('\tdone');
-        end
-
-        if do_contrast
-            fprintf('\n\tSaving movie - contrast...');
-            if cfg.save_temp; load(temp_contrast_file); end;
-            %movie(mov_contrast,1,fps)  % Play the contrast movie one time
-            movie2avi(mov_contrast,mov_contrast_name,'fps',INFO.check.movie.fps);
-            if cfg.save_temp; delete(temp_contrast_file); end;
-            clear mov_contrast;
-            fprintf('\tdone');
-        end
-        close gcf;
     end
 end
 

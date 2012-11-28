@@ -582,6 +582,7 @@ cvi.values = {
 }';
 cvi.def     = @(val)spm_get_defaults('stats.fmri.cvi', val{:});
 
+
 % ---------------------------------------------------------------------
 % expected_n_sessions Number of sessions to be expected
 % ---------------------------------------------------------------------
